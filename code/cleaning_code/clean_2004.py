@@ -2,31 +2,27 @@ import csv
 import pandas as pd
 import numpy as np
 
-year = '2014'
+year = '2004'
 
 import os
 current_dir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(current_dir)
 df = pd.read_csv('../../data/brfss/brfss' + year + '.csv', encoding='cp1252', low_memory=False)
-print(df.columns)
-print(df["x.ageg5yr"])
-print(df.shape)
-
 income = df['income2']
-race = df['x.race']
+race = df['race2']
 state = df['x.state']
 age = df['x.ageg5yr']
 sex = df['sex']
-height = df['height3']
+height = df['height2']
 weight = df['weight2']
 
 income_replace = {1:'<10k', 2:'10k-15k', 3:'15k-20k', 4:'20k-25k', 5:'25k-35k', 6:'35k-50k', 7:'>50k', 8:'>50k', 77:np.nan, 99:np.nan}
-race_replace = {1:'white', 2:'black', 3:'native american', 4:'asian/pacific islander', 5:'asian/pacific islander', 6:'other/multiracial', 7:'other/multiracial', 8:'hispanic', 9:'refused/unknown'}
+race_replace = {1:'white', 2:'black', 3:'asian/pacific islander', 4:'asian/pacific islander', 5:'native american', 6:'other/multiracial', 7:'other/multiracial', 8:'hispanic', 9:'refused/unknown'}
 age_replace = {1:'18-24', 2:'25-29', 3:'30-34', 4:'35-39', 5:'40-44', 6:'45-49', 7:'50-54', 8:'55-59', 9:'60-64', 10:'65-69', 11:'70-74', 12:'75-79', 13:'80+', 14:np.nan}
 sex_replace = {1:'male', 2:'female'}
-hw_replace = {7777:np.nan, 9999:np.nan}
-metric = True
-max_weight = 999
+hw_replace = {777:np.nan, 999:np.nan}
+metric = False
+max_weight = 777
 
 income = income.replace(income_replace)
 race = race.replace(race_replace)
@@ -97,4 +93,3 @@ bmi = pd.Series(bmi)
 brfss_out = pd.concat([income, race, state, age, sex, height, weight, bmi], axis=1)
 brfss_out.columns = ['income', 'race', 'state', 'age', 'sex', 'height', 'weight', 'bmi']
 brfss_out.to_csv('../../data/brfss/clean/'+'brfss'+year+'clean.csv')
-

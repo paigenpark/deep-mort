@@ -2,7 +2,7 @@ import csv
 import pandas as pd
 import numpy as np
 
-year = '2014'
+year = '2017'
 
 import os
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -97,4 +97,3 @@ bmi = pd.Series(bmi)
 brfss_out = pd.concat([income, race, state, age, sex, height, weight, bmi], axis=1)
 brfss_out.columns = ['income', 'race', 'state', 'age', 'sex', 'height', 'weight', 'bmi']
 brfss_out.to_csv('../../data/brfss/clean/'+'brfss'+year+'clean.csv')
-

@@ -3,8 +3,10 @@ import pandas as pd
 import numpy as np
 
 year = '2008'
-
-df = pd.read_csv('../data/brfss' + year + '.csv', encoding='cp1252')
+import os
+current_dir = os.path.dirname(os.path.abspath(__file__))
+os.chdir(current_dir)
+df = pd.read_csv('../../data/brfss/brfss' + year + '.csv', encoding='cp1252', low_memory=False)
 income = df['income2']
 race = df['race2']
 state = df['x.state']
@@ -89,5 +91,5 @@ bmi = pd.Series(bmi)
 
 brfss_out = pd.concat([income, race, state, age, sex, height, weight, bmi], axis=1)
 brfss_out.columns = ['income', 'race', 'state', 'age', 'sex', 'height', 'weight', 'bmi']
-brfss_out.to_csv('brfss'+year+'clean.csv')
+brfss_out.to_csv('../../data/brfss/clean/'+'brfss'+year+'clean.csv')
 
