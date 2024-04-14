@@ -15,10 +15,12 @@ sex = df['sex']
 height = df['height']
 weight = df['weight']
 
+
 income_replace = {1:'<10k', 2:'10k-15k', 3:'15k-20k', 4:'20k-25k', 5:'25k-35k', 6:'35k-50k', 7:'>50k', 8:np.nan, 9:np.nan}
 race_replace = {1:'white', 2:'black', 3:'hispanic', 4:'hispanic', 5:'hispanic', 6:'asian/pacific islander', 7:'native american', 8:'other/multiracial', 77:'refused/unknown', 99:'refused/unknown'}
 age_replace = {1:'18-24', 2:'25-29', 3:'30-34', 4:'35-39', 5:'40-44', 6:'45-49', 7:'50-54', 8:'55-59', 9:'60-64', 10:'65-69', 11:'70-74', 12:'75-79', 13:'80+', 14:np.nan}
 sex_replace = {1:'male', 2:'female'}
+
 hw_replace = {777:np.nan, 999:np.nan}
 metric = False
 max_weight = 777
@@ -29,6 +31,12 @@ age = age.replace(age_replace)
 sex = sex.replace(sex_replace)
 height = height.replace(hw_replace)
 weight = weight.replace(hw_replace)
+
+# new covariates 
+smoke100 = df['smoke100']
+smoke100_replace = {1:'yes', 2:'no', 7:np.nan, 9:np.nan}
+smoke100 = smoke100.replace(smoke100_replace)
+
 
 height = height.tolist()
 new_height = []
@@ -89,7 +97,7 @@ height = pd.Series(new_height)
 weight = pd.Series(new_weight)
 bmi = pd.Series(bmi)
 
-brfss_out = pd.concat([income, race, state, age, sex, height, weight, bmi], axis=1)
-brfss_out.columns = ['income', 'race', 'state', 'age', 'sex', 'height', 'weight', 'bmi']
+brfss_out = pd.concat([income, race, state, age, sex, height, weight, bmi, smoke100], axis=1)
+brfss_out.columns = ['income', 'race', 'state', 'age', 'sex', 'height', 'weight', 'bmi', 'smoke100']
 brfss_out.to_csv('../../data/brfss/clean/'+'brfss'+year+'clean.csv')
 

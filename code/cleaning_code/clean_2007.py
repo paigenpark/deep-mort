@@ -90,7 +90,12 @@ height = pd.Series(new_height)
 weight = pd.Series(new_weight)
 bmi = pd.Series(bmi)
 
-brfss_out = pd.concat([income, race, state, age, sex, height, weight, bmi], axis=1)
-brfss_out.columns = ['income', 'race', 'state', 'age', 'sex', 'height', 'weight', 'bmi']
+# new covariates 
+smoke100 = df['smoke100']
+smoke100_replace = {1:'yes', 2:'no', 7:np.nan, 9:np.nan}
+smoke100 = smoke100.replace(smoke100_replace)
+
+brfss_out = pd.concat([income, race, state, age, sex, height, weight, bmi, smoke100], axis=1)
+brfss_out.columns = ['income', 'race', 'state', 'age', 'sex', 'height', 'weight', 'bmi', 'smoke100']
 brfss_out.to_csv('../../data/brfss/clean/'+'brfss'+year+'clean.csv')
 
