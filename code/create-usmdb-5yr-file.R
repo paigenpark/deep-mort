@@ -15,7 +15,7 @@ states = c("AK", "AL", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID
            "WV", "WI", "WY")
 f_data = list()
 for (i in 1:length(states)){
-  file = paste(states[i], "fltper_1x1.csv", sep = "_")
+  file = paste(states[i], "fltper_5x1.csv", sep = "_")
   f_data[[i]] = read.csv(paste(path, states[i], file, sep = "/"))
   f_data[[i]]$state = states[i]
 }
@@ -23,7 +23,7 @@ names(f_data) <- states
 
 m_data = list()
 for (i in 1:length(states)){
-  file = paste(states[i], "mltper_1x1.csv", sep = "_")
+  file = paste(states[i], "mltper_5x1.csv", sep = "_")
   m_data[[i]] = read.csv(paste(path, states[i], file, sep = "/"))
   m_data[[i]]$state = states[i]
 }
@@ -39,7 +39,8 @@ all_states_reduced <- all_states[, 1:5]
 save_path <- here("data")
 save_path
 
-write.csv(all_states_reduced, paste(save_path, "usmdb.csv", sep = "/"), row.names = FALSE)
+
+write.csv(all_states_reduced, paste(save_path, "usmdb_5x1.csv", sep = "/"), row.names = FALSE)
 
 
 

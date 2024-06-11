@@ -6,7 +6,6 @@ library(tidyverse)
 path <- here("data", "country_lifetables", "Mx_5x1")
 path
 
-
 # read in data
 countries <- c("AUS", "AUT", "BEL", "BGR", "BLR", "CAN", "CHE", "CZE",
                "DNK", "ESP", "EST", "FIN", "FRATNP", "GBRTENW",
@@ -16,7 +15,7 @@ countries <- c("AUS", "AUT", "BEL", "BGR", "BLR", "CAN", "CHE", "CZE",
                "UKR", "USA")
 country_data <- list()
 for (i in 1:length(countries)){
-  file <- paste(countries[i], "Mx_1x1.txt", sep = ".")
+  file <- paste(countries[i], "Mx_5x1.txt", sep = ".")
   country_data[[i]] <- read.table(paste(path, file, sep = "/"),
                                   header = TRUE,
                                   skip = 2,
@@ -39,7 +38,7 @@ all_countries_long$Total <- NULL
 save_path <- here("data")
 save_path
 
-write.csv(all_countries_long, paste(save_path, "hmd.csv", sep = "/"), row.names = FALSE)
+write.csv(all_countries_long, paste(save_path, "hmd_5yr.csv", sep = "/"), row.names = FALSE)
 
 
 
