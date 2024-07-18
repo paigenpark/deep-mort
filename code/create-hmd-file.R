@@ -3,7 +3,7 @@ library(here)
 library(tidyverse)
 
 # setting up path
-path <- here("data", "country_lifetables", "Mx_5x1")
+path <- here("data", "country_lifetables", "Mx_1x1")
 path
 
 
@@ -30,10 +30,21 @@ names(country_data) <- countries
 all_countries <- do.call(rbind, country_data)
 
 # get gender variable and mort rate variable
-all_countries_long <- all_countries %>%
-  gather(key = "Gender", value = "Mortality_rate", c("Female", "Male"))
+all_countries_long <- all_countries |>
+  pivot_longer(cols = c(Female, Male), 
+    names_to = "Gender", values_to = "Mortality_rate") |>
+  mutate(Gender = case_when(
+    Gender == "Female" ~ "f",
+    Gender == "Male" ~ "m",
+    TRUE ~ Gender  # Handles cases where Gender might not be Female or Male
+  ))
 
 all_countries_long$Total <- NULL
+head(all_countries_long)
+
+all_countries_long <- all_countries_long |>
+  select(Country, Gender, Year, Age, Mortality_rate)
+head(all_countries_long)
 
 # setting up save_path
 save_path <- here("data")

@@ -36,7 +36,7 @@ all_states <- rbind(all_states_f, all_states_m)
 all_states_reduced <- all_states[, 1:5]
 
 # setting up save_path
-save_path <- here("data")
+save_path <- here("data", "usmdb")
 save_path
 
 write.csv(all_states_reduced, paste(save_path, "usmdb.csv", sep = "/"), row.names = FALSE)
