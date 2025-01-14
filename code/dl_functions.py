@@ -22,11 +22,14 @@ def get_data(index, data, max_val, mode):
 
     geography, gender, year, age, rate = entry[0], entry[1], entry[2], entry[3], entry[4]
 
-    # Normalization
+    # Normalization or preparation
     year = (year - 1959) / 60
     age = tf.cast(age, tf.int32)
     geography = tf.cast(geography, tf.int32)
     gender = tf.cast(gender, tf.int32)
+    # if rate == 0:
+    #     rate = rate + 1e-6
+    # rate = tf.math.log(rate) / -13.8
 
     # Reshape each element to scalar
     features = (tf.reshape(year, [1]), tf.reshape(age, [1]), tf.reshape(geography, [1]), tf.reshape(gender, [1]))
@@ -45,7 +48,7 @@ def prep_data(data, mode):
         dataset = dataset.repeat()
     
     else:
-        dataset = dataset.repeat(60)
+        dataset = dataset.repeat(120)
 
     # Properly use `map` to call `get_data`
     dataset = dataset.map(lambda x: get_data(x, data, max_val=max_val, mode=mode), num_parallel_calls=4)
@@ -103,6 +106,7 @@ def create_model(geo_dim):
     x = tfkl.Dense(128, activation='tanh')(x)
     x = tfkl.BatchNormalization()(x)
     x = tfkl.Dropout(0.05)(x)
+    
     x = tfkl.Dense(1, activation='sigmoid', name='final')(x)
 
     # creating the model 

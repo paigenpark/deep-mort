@@ -1,3 +1,10 @@
+import tensorflow as tf
+import csv
+import numpy as np
+import pandas as pd
+import os as os
+import matplotlib.pyplot as plt
+tfkl = tf.keras.layers
 # set up lee-carter function
 
 def lee_carter(mx_matrix):
@@ -198,30 +205,6 @@ def calculate_mse(forecasted_rates, actual_rates):
     countries_forecasted_values = filtered_forecasted[countries_mask, 4].astype(float)
     countries_actual_values = filtered_actual[countries_mask, 4].astype(float)
     countries_mse = np.mean((countries_forecasted_values - countries_actual_values) ** 2)
-
-    # # Plotting the Actual vs. Forecasted Mortality Rates for States
-    # plt.figure(figsize=(12, 6))
-    # plt.scatter(states_actual_values, states_forecasted_values, alpha=0.6)
-    # plt.plot([min(states_actual_values), max(states_actual_values)], 
-    #          [min(states_actual_values), max(states_actual_values)], 
-    #          color='red', linestyle='--', linewidth=2)
-    # plt.title('Actual vs Forecasted Mortality Rates for States')
-    # plt.xlabel('Actual Mortality Rate')
-    # plt.ylabel('Forecasted Mortality Rate')
-    # plt.grid(True)
-    # plt.show()
-
-    # # Plotting the Actual vs. Forecasted Mortality Rates for Countries
-    # plt.figure(figsize=(12, 6))
-    # plt.scatter(countries_actual_values, countries_forecasted_values, alpha=0.6)
-    # plt.plot([min(countries_actual_values), max(countries_actual_values)], 
-    #          [min(countries_actual_values), max(countries_actual_values)], 
-    #          color='red', linestyle='--', linewidth=2)
-    # plt.title('Actual vs Forecasted Mortality Rates for Countries')
-    # plt.xlabel('Actual Mortality Rate')
-    # plt.ylabel('Forecasted Mortality Rate')
-    # plt.grid(True)
-    # plt.show()
     
     results = []
     results.append((states_mse, countries_mse, overall_mse))

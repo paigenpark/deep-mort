@@ -1,3 +1,11 @@
+import tensorflow as tf
+import csv
+import numpy as np
+import pandas as pd
+import os as os
+import matplotlib.pyplot as plt
+tfkl = tf.keras.layers
+
 # function to plot actual mortality rates for given year, gender, geo against model predictions 
 def plot_mort_predictions(geo, year, age_range, genders, data, dl_models, model_names, lc_predictions, geos_key):
 
@@ -103,7 +111,7 @@ def plot_pred_diff_by_age(geo, year, age_range, genders, data, dl_models, model_
         # Title and labels
         ax.set_title(f'Difference in Predictions vs Actual: {"Male" if gender == 0 else "Female"} in {year} for {geos_key[geo]}')
         ax.set_xlabel('Age')
-        ax.set_ylabel('Differnce in Mortality Rate')
+        ax.set_ylabel('Difference in Mortality Rate')
         ax.legend()
     
     plt.tight_layout()
@@ -168,11 +176,12 @@ def plot_pred_diff_by_year(geo, year_range, age, genders, data, dl_models, model
     # plot mse by category 
 
 
-def plot_mse_section(mse_by_category1, mse_by_category2, category_labels, type, start=0, end=49):
+def plot_mse_section(mse_by_category1, mse_by_category2, mse_by_category3, category_labels, plot_type, start, end, x_max):
     category_labels_dict = {int(num): label for label, num in category_labels}
     # Filter the MSE dictionary for keys in the range start to end (inclusive)
     filtered_mse1 = {k: v for k, v in mse_by_category1.items() if start <= k <= end}
     filtered_mse2 = {k: v for k, v in mse_by_category2.items() if start <= k <= end}
+    filtered_mse3 = {k: v for k, v in mse_by_category3.items() if start <= k <= end}
     
     # Sort the filtered dictionary by the MSE values in decreasing order
     sorted_mse = sorted(filtered_mse1.items(), key=lambda item: item[1], reverse=True)
@@ -181,23 +190,30 @@ def plot_mse_section(mse_by_category1, mse_by_category2, category_labels, type, 
     categories = [item[0] for item in sorted_mse]
     mse_values1 = [item[1] for item in sorted_mse]
     mse_values_model2 = [filtered_mse2.get(cat, 0) for cat in categories]
+    mse_values_model3 = [filtered_mse3.get(cat, 0) for cat in categories]
 
     category_labels_mapped = [category_labels_dict.get(cat, str(cat)) for cat in categories]
     
-    # Define the bar width and positions
-    bar_width = 0.4
+    # Create figure and axes
+    fig, ax = plt.subplots(figsize=(10, 12))
     indices = np.arange(len(categories))
-
-    # Plotting side-by-side bars
-    plt.figure(figsize=(10, 12))
-    plt.barh(indices, mse_values1, height=bar_width, color='skyblue', label='Combined Model')
-    plt.barh(indices + bar_width, mse_values_model2, height=bar_width, color='salmon', label='Separate Model')
+    bar_width = 0.3
+    
+    ax.barh(indices, mse_values1, height=bar_width, color='skyblue', label='Combined Model')
+    ax.barh(indices + bar_width, mse_values_model2, height=bar_width, color='salmon', label='Separate Model')
+    ax.barh(indices + 2 * bar_width, mse_values_model3, height=bar_width, color='lightgrey', label='Lee-Carter Model')  # Faded grey color
     
     # Add labels and adjust y-axis
-    plt.yticks(indices + bar_width / 2, category_labels_mapped, fontsize=12)  # Set the label in the middle of the two bars
-    plt.xlabel('MSE', fontsize=12)
-    plt.ylabel(f'{type}', fontsize=12)
-    plt.title(f'MSE Comparison for {type}', fontsize=14)
-    plt.legend()
-    plt.tight_layout()
-    plt.show()
+    ax.set_yticks(indices + bar_width)
+    ax.set_yticklabels(category_labels_mapped, fontsize=12)  # Set the label in the middle of the bars
+    ax.set_xlabel('MSE', fontsize=12)
+    ax.set_ylabel(f'{plot_type}', fontsize=12)
+    ax.set_title(f'MSE Comparison for {plot_type}', fontsize=14)
+    ax.legend()
+    
+    # Set x-axis limit for zoomed view
+    ax.set_xlim(0, x_max)
+    
+    fig.tight_layout()
+    return fig, ax
+
