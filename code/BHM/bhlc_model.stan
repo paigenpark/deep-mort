@@ -3,24 +3,25 @@ data {
     int<lower=1> I;              // Number of populations
     int<lower=1> X;              // Number of age groups
     int<lower=1> T;              // Number of time points
-    array[N] int<lower=1> age;         // Age indices
-    array[N] int<lower=1> year;        // Year indices
-    array[N] int<lower=1> population;  // Population indices
+    array[N] int<lower=1> age;         // Age column
+    array[N] int<lower=1> year;        // Year column
+    array[N] int<lower=1> population;  // Population column
     vector[N] log_mortality;     // Log-transformed mortality rates
 }
 
 parameters {
     real mu_alpha;                 // Global mean for alpha 
     real<lower=0> sigma_alpha;     // Standard deviation of alpha 
-    matrix[X, I] alpha_raw;    // Raw deviations for age effects 
+    matrix[X, I] alpha_raw;    // Observation-level deviations for age effects 
 
     real mu_beta;                  // Global mean for beta 
     real<lower=0> sigma_beta;      // Standard deviation of beta 
-    matrix[X, I] beta_raw;     // Raw deviations for beta effects 
+    matrix[X, I] beta_raw;     // Observation-level deviations for beta effects 
 
     matrix[T, I] kappa;                 // Temporal trend for each population
     real<lower=0.0001> sigma_kappa;     // Smoothness parameter for kappa
-    real<lower=0, upper=1> phi;         // AR(1) parameter
+    real<lower=0, upper=1> phi;         // AR(1) parameter (using AR(1) instead of RMD for multi-population)
+                                        // inspired by Shi et al.
 
     real<lower=0.0001> sigma_obs;       // Observation noise
 }
@@ -44,7 +45,7 @@ model {
     sigma_beta ~ normal(0.5, 0.25) T[0, ];
     to_vector(beta_raw) ~ normal(0, 1);
 
-    phi ~ beta(2, 2);
+    phi ~ beta(2, 2);       // prior used in Shi et al. 
     sigma_kappa ~ normal(0.5, 0.25) T[0, ];
     sigma_obs ~ normal(0.5, 0.25) T[0, ];
 

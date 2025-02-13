@@ -122,7 +122,7 @@ def run_deep_model(dataset_train, dataset_test, geo_dim, epochs):
     
     model = create_model(geo_dim)
 
-    callbacks = [tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss", factor=0.25, patience=3, verbose=0, mode="auto", 
+    callbacks = [tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss", factor=0.25, patience=6, verbose=0, mode="auto", 
                                                     min_delta=1e-8, cooldown=0, min_lr=0.0)]
     history = model.fit(dataset_train, validation_data=dataset_test, validation_steps=25, steps_per_epoch=1000, 
                         epochs=epochs, verbose=2, callbacks=callbacks)

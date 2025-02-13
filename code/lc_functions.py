@@ -1,12 +1,6 @@
-import tensorflow as tf
-import csv
 import numpy as np
-import pandas as pd
-import os as os
-import matplotlib.pyplot as plt
-tfkl = tf.keras.layers
-# set up lee-carter function
 
+# set up lee-carter function
 def lee_carter(mx_matrix):
     """
     Run the Lee-Carter model on age-specific mortality data.
@@ -17,7 +11,7 @@ def lee_carter(mx_matrix):
     Returns:
         tuple: A tuple containing the estimated parameters (ax, bx, kt) and the fitted mortality rates.
     """
-    # set 0s to small number so log resutls are valid
+    # set 0s to small number so log results are valid
     mx_matrix[mx_matrix <= 0] = 1e-9
 
     # ax are averages over time of log(mx) 
@@ -44,7 +38,7 @@ def lee_carter(mx_matrix):
     return (ax, bx, kt), fitted_mort
 
 # set up function to run multiple models on all years in training data
-
+# should change this function so that indices are not hard-coded
 def lee_carter_geo_gender(data):
 
     geos = np.unique(data[:, 0])
@@ -52,7 +46,7 @@ def lee_carter_geo_gender(data):
 
     results = {}
 
-    # fit LC model to each geography and gender seperately 
+    # fit LC model to each geography (population) and gender seperately 
     for geo in geos:
         for gender in genders:
             mask = (data[:, 0] == geo) & (data[:, 1] == gender)
@@ -70,17 +64,17 @@ def lee_carter_geo_gender(data):
                     #m_x[i,j] = geo_gender_data[mask, 4]
                     selected_data = geo_gender_data[mask, 4]
 
-                    # Ensure we handle different cases for selected_data
+                    # ensure we handle different cases for selected_data
                     if selected_data.size == 0:
-                        # No data available for this age and year
-                        m_x[i, j] = np.nan  # Assign NaN or some default value
+                        # no data available for this age and year
+                        m_x[i, j] = np.nan  # assign NaN 
                     elif selected_data.size == 1:
-                        # Exactly one value, the expected case
+                        # exactly one value, the expected case
                         m_x[i, j] = selected_data[0]
                     else:
-                        # More than one value, choose an aggregation method
+                        # more than one value, take the mean
                         print("more than 1 value")
-                        m_x[i, j] = np.mean(selected_data)  # Or use np.median, np.min, etc.
+                        m_x[i, j] = np.mean(selected_data)  
 
             # Debugging
              # Check for NaN or infinite values
@@ -110,14 +104,14 @@ def lee_carter_forecast(results, h, start_year, ages, drift=True):
     Perform the forecasting step of the Lee-Carter method using a random walk with drift.
     
     Args:
-        results (dict): A dictionary containing the estimated parameters (ax, bx, kt) for each state and gender combination.
+        results (dict): A dictionary containing the estimated parameters (ax, bx, kt) for each geography and gender combination.
         h (int): The number of future periods to forecast.
         start_year (int): The starting year of the forecast.
         ages (numpy.ndarray): A 1D array of ages corresponding to the rows of the mortality matrix.
         drift (bool, optional): Whether to include a drift term in the random walk. Default is True.
         
     Returns:
-        numpy.ndarray: A 2D array with 5 columns representing state, gender, year, age, and forecasted mortality rate.
+        numpy.ndarray: A 2D array with 5 columns representing geography, gender, year, age, and forecasted mortality rate.
     """
     
     forecasts = []
@@ -125,40 +119,39 @@ def lee_carter_forecast(results, h, start_year, ages, drift=True):
     for geo, gender in results.keys():
         ax, bx, kt = results[(geo, gender)]['params']
         
-        # Estimate the drift term (slope in kt)
+        # estimate the drift term (slope in kt)
         if drift:
             drift_term = (kt[-1] - kt[0]) / (len(kt) - 1)
         else:
             drift_term = 0
         
-        # Forecast future kt values using a random walk with drift
+        # forecast future kt values using a random walk with drift
         kt_forecast = np.zeros(h)
         kt_forecast[0] = kt[-1]
         for i in range(1, h):
             kt_forecast[i] = kt_forecast[i-1] + drift_term + np.random.normal(0, 1)
         
-        # Forecast future mortality rates
+        # forecast future mortality rates
         ax_matrix = np.repeat(ax, h).reshape(-1, h)
         bx_matrix = np.repeat(bx, h).reshape(-1, h)
         kt_matrix = np.repeat(kt_forecast, len(ax)).reshape(h, -1).T
         mortality_forecast = np.exp(ax_matrix + bx_matrix * kt_matrix)
 
-        # Clipping forecasted mortality rates to a maximum of 1
+        # clipping forecasted mortality rates to a maximum of 1
         mortality_forecast = np.clip(mortality_forecast, 0, 1)
 
-        # Create a 2D array with geo, gender, year, age, and forecasted mortality rate
+        # create a 2D array with geo, gender, year, age, and forecasted mortality rate
         for i in range(h):
             year = start_year + i
             for j, age in enumerate(ages):
                 forecasts.append([geo, gender, year, age, mortality_forecast[j, i]])
 
-    # Convert forecasts to a NumPy array
+    # convert forecasts to a numpy array
     forecasts = np.array(forecasts)
 
-    # Sort the forecasts array based on the first four columns
+    # sort the forecasts array based on the first four columns
     sorted_indices = np.lexsort((forecasts[:, 3], forecasts[:, 2], forecasts[:, 1], forecasts[:, 0]))
     forecasts = forecasts[sorted_indices]
-
     
     return forecasts
 
