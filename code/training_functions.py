@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 tfkl = tf.keras.layers
 
 # get and prepare data
-def get_data(index, data, max_val, mode, lograte=False):
+def get_data(index, data, max_val, mode, datanotlog=False):
     if mode == "train":
         # Randomly selects index from training data between 0 and the max index in train
         rand_index = tf.random.uniform([], minval=0, maxval=max_val, dtype=tf.int32) 
@@ -26,7 +26,7 @@ def get_data(index, data, max_val, mode, lograte=False):
     age = tf.cast(age, tf.int32)
     geography = tf.cast(geography, tf.int32)
     gender = tf.cast(gender, tf.int32)
-    if lograte:
+    if datanotlog:
         epsilon = 9e-06 # min rate in training data
         rate = tf.math.log(tf.maximum(rate, epsilon))
 
@@ -36,7 +36,7 @@ def get_data(index, data, max_val, mode, lograte=False):
     return features, rate
 
     
-def prep_data(data, mode, lograte=False):
+def prep_data(data, mode, datanotlog=False):
     
     data = tf.convert_to_tensor(data)
     data = tf.cast(data, tf.float32)
@@ -51,7 +51,7 @@ def prep_data(data, mode, lograte=False):
         dataset = dataset.repeat(120)
     
     dataset = dataset.map(
-        lambda x: get_data(x, data, max_val=max_val, mode=mode, lograte=lograte), 
+        lambda x: get_data(x, data, max_val=max_val, mode=mode, datanotlog=datanotlog), 
                           num_parallel_calls=4)
 
     # Batch the dataset for efficient predictions 
@@ -86,31 +86,29 @@ def create_model(geo_dim):
     x1 = x
 
     # setting up middle layers 
-    x = tfkl.Dense(128, activation='relu')(x)
+    x = tfkl.Dense(128, activation='tanh')(x)
     x = tfkl.BatchNormalization()(x)
     x = tfkl.Dropout(0.05)(x)
 
-    x = tfkl.Dense(128, activation='relu')(x)
+    x = tfkl.Dense(128, activation='tanh')(x)
     x = tfkl.BatchNormalization()(x)
     x = tfkl.Dropout(0.05)(x)
 
-    x = tfkl.Dense(128, activation='relu')(x)
+    x = tfkl.Dense(128, activation='tanh')(x)
     x = tfkl.BatchNormalization()(x)
     x = tfkl.Dropout(0.05)(x)
 
-    x = tfkl.Dense(128, activation='relu')(x)
+    x = tfkl.Dense(128, activation='tanh')(x)
     x = tfkl.BatchNormalization()(x)
     x = tfkl.Dropout(0.05)(x)
 
     # setting up output layer 
     x = tfkl.Concatenate()([x1, x])
-    x = tfkl.Dense(128, activation='relu')(x)
+    x = tfkl.Dense(128, activation='tanh')(x)
     x = tfkl.BatchNormalization()(x)
     x = tfkl.Dropout(0.05)(x)
-    
-    x = tfkl.Dense(1, name='final')(x)
 
-    #x = tfkl.Dense(1, activation=None, name='final')(x)
+    x = tfkl.Dense(1, activation='sigmoid', name='final')(x)
 
     # creating the model 
     model = tf.keras.Model(inputs=[year, age, geography, gender], outputs=[x])
@@ -176,8 +174,8 @@ def create_log_model(geo_dim):
 
 
 # run DL model
-def run_deep_model(dataset_train, dataset_test, geo_dim, epochs, lograte=False):
-    if lograte:
+def run_deep_model(dataset_train, dataset_test, geo_dim, epochs, dataislog=False):
+    if dataislog:
         model = create_log_model(geo_dim)
     else:
         model = create_model(geo_dim)
