@@ -1,6 +1,6 @@
 # deep-mort
 
-This project invesigates the efficacy of deep learning for mortality forecasting, building on the work of [Richman and Wuthrich (2021)](https://www.cambridge.org/core/journals/annals-of-actuarial-science/article/neural-network-extension-of-the-leecartermodel-to-multiple-populations/19651C62C3976DCD73C79E57CF4A071C). 
+This project invesigates the efficacy of deep learning for mortality forecasting, building on the work of [Richman and Wüthrich (2021)](https://www.cambridge.org/core/journals/annals-of-actuarial-science/article/neural-network-extension-of-the-leecartermodel-to-multiple-populations/19651C62C3976DCD73C79E57CF4A071C). 
 
 ## Replication Instructions
 
