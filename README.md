@@ -13,7 +13,7 @@ The data used in this project is stored in a shared Google Drive folder. You can
 Clone the repo and download the data from the Google Drive link. Place the data/ folder inside the root directory of this project.
 
 ### File Structure
-
+```
 .
 ├── data/                        # Data folder (downloadable from Google Drive)
 │
@@ -28,7 +28,7 @@ Clone the repo and download the data from the Google Drive link. Place the data/
 ├── models/                     # Saved models 
 │
 ├── README.md                   # This file
-
+```
 ### Replication Steps
 
 If you want to replicate results from raw data: 
@@ -43,7 +43,7 @@ If you want to replicate results from raw data:
 ## Citing and Contact
 
 If you use this project in your research, please cite it as follows:
-
+```bibtex
 @misc{park2025project,
   author       = {Paige N. Park},
   title        = {Deep Learning for Mortality Forcasting},
@@ -51,5 +51,5 @@ If you use this project in your research, please cite it as follows:
   howpublished = {\url{(https://github.com/paigenpark/deep-mort)}},
   note         = {Version 1.0}
 }
-
+```
 If you have questions feel free to email me: paige_park@berkeley.edu
