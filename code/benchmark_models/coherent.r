@@ -5,7 +5,7 @@ library(reshape2)
 # sets working directory to the location of this script
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
-country_training <- read.table("../data/country_training.txt", header = FALSE)
+country_training <- read.table("../../data/country_training.txt", header = FALSE)
 countries <- unique(country_training[,1])
 genders <- unique(country_training[,2])
 years <- unique(country_training[,3])
@@ -96,11 +96,12 @@ final_forecasted_df <- final_forecasted_df |>
 head(final_fitted_df)
 head(final_forecasted_df)
 
-write.table(final_fitted_df, "../data/coherent_fitted_all.csv", sep=",", col.names = FALSE,
-            row.names = FALSE)
+# uncomment to re-save prediction files
+#write.table(final_fitted_df, "../../data/coherent_fitted_all.csv", sep=",", col.names = FALSE,
+          #  row.names = FALSE)
 
-write.table(final_forecasted_df, "../data/coherent_forecast_all.csv", sep=",", 
-            col.names = FALSE, row.names = FALSE)
+#write.table(final_forecasted_df, "../../data/coherent_forecast_all.csv", sep=",", 
+          #  col.names = FALSE, row.names = FALSE)
 
 
 

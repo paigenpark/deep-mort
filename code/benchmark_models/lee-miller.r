@@ -5,7 +5,7 @@ library(reshape2)
 # sets working directory to the location of this script
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
-country_training <- read.table("../data/country_training.txt", header = FALSE)
+country_training <- read.table("../../data/country_training.txt", header = FALSE)
 countries <- unique(country_training[,1])
 genders <- unique(country_training[,2])
 years <- unique(country_training[,3])
@@ -24,8 +24,8 @@ for (i in countries) {
     mx_mat <- unlist(lapply(years, function(i) filtered[filtered[,3] == i, 5]))
     mx_mat <- matrix(mx_mat, nrow = length(ages), ncol = length(years), byrow = FALSE)
     colnames(mx_mat) <- years
-    mx_mat[is.na(mx_mat)] <- 1e-6
-    mx_mat[mx_mat == 0] <- 1e-6
+    #mx_mat[is.na(mx_mat)] <- 1e-6
+    #mx_mat[mx_mat == 0] <- 1e-6
     
     Ext <- matrix(1, nrow = length(ages), ncol = length(years))
     
@@ -38,10 +38,13 @@ for (i in countries) {
       label = i,
       name = j
     )
-    
+    print(data)
     lc_output <- lca(data,
+                     series = j,
+                     ages = ages,
                      years = years,
-                     ages = ages)
+                     adjust = "e0",
+                     interpolate = TRUE)
     
     fitted <- exp(lc_output$fitted$y)
     df_fitted <- as.data.frame(fitted)
@@ -54,7 +57,7 @@ for (i in countries) {
     df_fitted_long$gender <- j
     fitted_results[[paste(i, j, sep = "_")]] <- df_fitted_long
       
-    forecasted <- forecast(lc_output, h=10)
+    forecasted <- forecast(lc_output, h=10, jumpchoice = "actual")
     forecasted_rates <- do.call(cbind, forecasted$rate[1])
     df_forecasted <- as.data.frame(forecasted_rates)
     df_forecasted$age <- ages
@@ -79,11 +82,12 @@ final_forecasted_df <- final_forecasted_df |>
 head(final_fitted_df)
 head(final_forecasted_df)
 
-write.table(final_fitted_df, "../data/lc_fitted_all.csv", sep=",", col.names = FALSE,
-            row.names = FALSE)
+# uncomment to re-save prediction files
+#write.table(final_fitted_df, "../../data/lm_fitted_all.csv", sep=",", col.names = FALSE,
+          #  row.names = FALSE)
 
-write.table(final_forecasted_df, "../data/lc_forecast_all.csv", sep=",", 
-            col.names = FALSE, row.names = FALSE)
+#write.table(final_forecasted_df, "../../data/lm_forecast_all.csv", sep=",", 
+          #  col.names = FALSE, row.names = FALSE)
 
 
 
