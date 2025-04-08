@@ -98,6 +98,36 @@ def lee_carter_geo_gender(data):
     
     return results
 
+def reconstruct_fitted_rates(data, results):
+    reconstructed_data = []
+
+    geos = np.unique(data[:, 0])
+    genders = np.unique(data[:, 1])
+
+    for geo in geos:
+        for gender in genders:
+            if (geo, gender) not in results:
+                continue
+
+            # Retrieve the fitted mortality matrix
+            fitted_mort = results[(geo, gender)]['fitted_mortality']
+
+            # Extract unique years and ages
+            mask = (data[:, 0] == geo) & (data[:, 1] == gender)
+            geo_gender_data = data[mask]
+            years = np.unique(geo_gender_data[:, 2])
+            ages = np.unique(geo_gender_data[:, 3])
+
+            # Reconstruct the data in the original format
+            for i, age in enumerate(ages):
+                for j, year in enumerate(years):
+                    reconstructed_data.append([geo, gender, year, age, fitted_mort[i, j]])
+
+    # Convert the list to a NumPy array
+    reconstructed_array = np.array(reconstructed_data, dtype=object)
+
+    return reconstructed_array
+
 
 def lee_carter_forecast(results, h, start_year, ages, drift=True):
     """
