@@ -36,7 +36,7 @@ all_countries_long <- all_countries |>
   mutate(Gender = case_when(
     Gender == "Female" ~ "f",
     Gender == "Male" ~ "m",
-    TRUE ~ Gender  # Handles cases where Gender might not be Female or Male
+    TRUE ~ Gender  
   ))
 
 all_countries_long$Total <- NULL

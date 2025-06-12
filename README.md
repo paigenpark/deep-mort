@@ -1,6 +1,6 @@
 # deep-mort
 
-This project invesigates the efficacy of deep learning for mortality forecasting, building on the work of [Richman and Wüthrich (2021)](https://www.cambridge.org/core/journals/annals-of-actuarial-science/article/neural-network-extension-of-the-leecartermodel-to-multiple-populations/19651C62C3976DCD73C79E57CF4A071C). 
+This project investigates the efficacy of deep learning for mortality forecasting, building on the work of [Richman and Wüthrich (2021)](https://www.cambridge.org/core/journals/annals-of-actuarial-science/article/neural-network-extension-of-the-leecartermodel-to-multiple-populations/19651C62C3976DCD73C79E57CF4A071C). 
 
 ## Replication Instructions
 
@@ -19,8 +19,8 @@ Clone the repo and download the data from the Google Drive link. Place the data/
 │
 ├── code/                        # Jupyter notebooks for exploration & analysis
 │    ├── benchmark_models/            # Lee-Carter, Lee-Miller, and Coherent baseline implementations
-│    ├── data_preparation/            # Creating clean HMD and USMDB data files & splitting data
-│    ├── create_figures.ipynb         # Visualization of results from paper
+│    ├── data_preparation/            # Creating clean HMD and USMDB data files from raw data & splitting data
+│    ├── create_robust_figures.ipynb  # Visualization of results from paper - "robust" because uses models from multiple training runs
 │    ├── evaluation_functions.py      # Functions used in create_figures.ipynb to analyze results
 │    ├── train_models.ipynb           # Training deep learning models and saving model predictions
 │    └── training_functions.py        # Functions used in train_models.ipynb to train models

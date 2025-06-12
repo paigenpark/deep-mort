@@ -1,6 +1,7 @@
 library(demography)
 library(tidyverse)
 library(reshape2)
+library(glue)
 
 # sets working directory to the location of this script
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
@@ -49,59 +50,54 @@ combined_data <- data_objects[[1]]
 combined_data$rate <- lapply(data_objects, function(x) x$rate[[1]])
 combined_data$pop  <- lapply(data_objects, function(x) x$pop[[1]])
 
-# fits
-coherent_fits <- coherentfdm(combined_data)
-plot(residuals(coherent_fits$product))
-plot(residuals(coherent_fits$ratio$`87_0`))
-
-# forecasts
-coherent_forecasts <- forecast(coherent_fits, h=10, drange=c(0,0.5))
-
-plot(coherent_forecasts$product, 'c', comp=2)
-plot(coherent_fits$product$y, col='gray', ylim=c(-11,-0.5),
-     main="Mortality forecasts product: 2010-2059")
-lines(coherent_forecasts$product)
-
-plot(coherent_forecasts$ratio$`87_0`, 'c', comp=2)
-plot(coherent_fits$ratio$`87_0`$y,col='gray',
-     main="Mortality forecasts ratio (M/F): 2010-2059")
-lines(coherent_forecasts$ratio$`87_0`) 
-
-# save forecasted results
-forecasted_rates <- list()
-forecasted_results <- list()
-for (i in 1:76) {
-  forecasted_rates[[i]] <- coherent_forecasts[[i]]$rate[[1]]
+for (j in 1:5) {
+  # fits
+  coherent_fits <- coherentfdm(combined_data)
   
-  df_forecasted <- as.data.frame(forecasted_rates[[i]])
-  df_forecasted$age <- ages
-  df_forecasted_long <- melt(df_forecasted, id.vars = "age", 
-                             variable.name = "year",
-                             value.name = "rate")
-  df_forecasted_long$year <- rep(forecasted_years, each = length(ages))
-  
-  # Extract country and gender from names
-  label_split <- strsplit(names(coherent_forecasts[i]), "_")[[1]]
-  df_forecasted_long$country <- as.numeric(label_split[1])
-  df_forecasted_long$gender <- as.numeric(label_split[2])
+  # forecasts
+  coherent_forecasts <- forecast(coherent_fits, h=10) 
 
-  forecasted_results[[i]] <- df_forecasted_long
+  # save forecasted results
+  forecasted_rates <- list()
+  forecasted_results <- list()
+  
+  for (i in 1:76) {
+    forecasted_rates[[i]] <- coherent_forecasts[[i]]$rate[[1]]
+    
+    df_forecasted <- as.data.frame(forecasted_rates[[i]])
+    df_forecasted$age <- ages
+    df_forecasted_long <- melt(df_forecasted, id.vars = "age", 
+                              variable.name = "year",
+                              value.name = "rate")
+    df_forecasted_long$year <- rep(forecasted_years, each = length(ages))
+    
+    # Extract country and gender from names
+    label_split <- strsplit(names(coherent_forecasts[i]), "_")[[1]]
+    df_forecasted_long$country <- as.numeric(label_split[1])
+    df_forecasted_long$gender <- as.numeric(label_split[2])
+
+    forecasted_results[[i]] <- df_forecasted_long
+  }
+
+  final_forecasted_df <- bind_rows(forecasted_results) |>
+    select(country, gender, year, age, rate)  
+  
+  print(glue("Iteration {j} end"))
+
+  # uncomment to re-save files
+  # write.table(final_forecasted_df, glue("../../data/coherent_forecast_all_{j}.csv"), sep=",", 
+        #     col.names = FALSE, row.names = FALSE)
+
+
+
 }
 
-final_forecasted_df <- bind_rows(forecasted_results)
-final_forecasted_df <- final_forecasted_df |>
-  select(country, gender, year, age, rate)  
 
-# View structure of final datasets
-head(final_fitted_df)
-head(final_forecasted_df)
 
-# uncomment to re-save prediction files
-#write.table(final_fitted_df, "../../data/coherent_fitted_all.csv", sep=",", col.names = FALSE,
-          #  row.names = FALSE)
 
-#write.table(final_forecasted_df, "../../data/coherent_forecast_all.csv", sep=",", 
-          #  col.names = FALSE, row.names = FALSE)
+
+
+
 
 
 

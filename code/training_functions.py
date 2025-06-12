@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 tfkl = tf.keras.layers
 
 # get and prepare data
-def get_data(index, data, max_val, mode, datanotlog=False):
+def get_data(index, data, max_val, mode, changeratetolog=False):
     if mode == "train":
         # Randomly selects index from training data between 0 and the max index in train
         rand_index = tf.random.uniform([], minval=0, maxval=max_val, dtype=tf.int32) 
@@ -26,7 +26,7 @@ def get_data(index, data, max_val, mode, datanotlog=False):
     age = tf.cast(age, tf.int32)
     geography = tf.cast(geography, tf.int32)
     gender = tf.cast(gender, tf.int32)
-    if datanotlog:
+    if changeratetolog:
         epsilon = 9e-06 # min rate in training data
         rate = tf.math.log(tf.maximum(rate, epsilon))
 
@@ -36,7 +36,7 @@ def get_data(index, data, max_val, mode, datanotlog=False):
     return features, rate
 
     
-def prep_data(data, mode, datanotlog=False):
+def prep_data(data, mode, changeratetolog=False):
     
     data = tf.convert_to_tensor(data)
     data = tf.cast(data, tf.float32)
@@ -51,7 +51,7 @@ def prep_data(data, mode, datanotlog=False):
         dataset = dataset.repeat(120)
     
     dataset = dataset.map(
-        lambda x: get_data(x, data, max_val=max_val, mode=mode, datanotlog=datanotlog), 
+        lambda x: get_data(x, data, max_val=max_val, mode=mode, changeratetolog=changeratetolog), 
                           num_parallel_calls=4)
 
     # Batch the dataset for efficient predictions 
@@ -174,8 +174,8 @@ def create_log_model(geo_dim):
 
 
 # run DL model
-def run_deep_model(dataset_train, dataset_test, geo_dim, epochs, dataislog=False):
-    if dataislog:
+def run_deep_model(dataset_train, dataset_test, geo_dim, epochs, lograte=False):
+    if lograte:
         model = create_log_model(geo_dim)
     else:
         model = create_model(geo_dim)
@@ -185,12 +185,9 @@ def run_deep_model(dataset_train, dataset_test, geo_dim, epochs, dataislog=False
     history = model.fit(dataset_train, validation_data=dataset_test, validation_steps=25, steps_per_epoch=1000, 
                         epochs=epochs, verbose=2, callbacks=callbacks)
 
-    loss_info = {
-        'train_mse': history.history['loss'][-1],
-        'val_mse': history.history['val_loss'][-1]
-    }
+    val_loss = history.history['val_loss'][-1]
 
     tf.keras.backend.clear_session()
 
-    return model, loss_info
+    return model, val_loss
 

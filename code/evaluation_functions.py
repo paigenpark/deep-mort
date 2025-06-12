@@ -5,7 +5,7 @@ import os as os
 import matplotlib.pyplot as plt
 tfkl = tf.keras.layers
 
-def calculate_error_by_category(forecasted_data, actual_data, feature_index, datanotlog=False):
+def calculate_error_by_category(forecasted_data, actual_data, feature_index, changeratetolog=False):
     # Ensure both arrays are sorted by geo, gender, year, and age
     forecasted_data = forecasted_data[np.lexsort((forecasted_data[:, 3], forecasted_data[:, 2], forecasted_data[:, 1], forecasted_data[:, 0]))]
     actual_data = actual_data[np.lexsort((actual_data[:, 3], actual_data[:, 2], actual_data[:, 1], actual_data[:, 0]))]
@@ -30,7 +30,7 @@ def calculate_error_by_category(forecasted_data, actual_data, feature_index, dat
         forecasted_rates = forecasted[:, 4].astype(float)
         actual_rates = actual[:, 4].astype(float)
 
-        if datanotlog:
+        if changeratetolog:
             forecasted_rates[forecasted_rates == 0] = 9e-06
             actual_rates[actual_rates == 0] = 9e-06
 
@@ -43,7 +43,7 @@ def calculate_error_by_category(forecasted_data, actual_data, feature_index, dat
         
     return mses_by_category, rmses_by_category, rrmses_by_category
 
-def calculate_error(forecasted_data, actual_data, datanotlog=False):
+def calculate_error(forecasted_data, actual_data, changeratetolog=False):
     # Ensure both arrays are sorted by geo, gender, year, and age
     forecasted_data = forecasted_data[np.lexsort((forecasted_data[:, 3], forecasted_data[:, 2], forecasted_data[:, 1], forecasted_data[:, 0]))]
     actual_data = actual_data[np.lexsort((actual_data[:, 3], actual_data[:, 2], actual_data[:, 1], actual_data[:, 0]))]
@@ -58,7 +58,7 @@ def calculate_error(forecasted_data, actual_data, datanotlog=False):
     forecasted_rates = filtered_forecasted[:, 4].astype(float)
     actual_rates = filtered_actual[:, 4].astype(float)
 
-    if datanotlog:
+    if changeratetolog:
         forecasted_rates[forecasted_rates == 0] = 9e-06
         actual_rates[actual_rates == 0] = 9e-06
 
