@@ -140,25 +140,25 @@ def create_log_model(geo_dim):
     x1 = x
 
     # setting up middle layers 
-    x = tfkl.Dense(128, activation='relu')(x)
+    x = tfkl.Dense(128, activation='tanh')(x)
     x = tfkl.BatchNormalization()(x)
     x = tfkl.Dropout(0.05)(x)
 
-    x = tfkl.Dense(128, activation='relu')(x)
+    x = tfkl.Dense(128, activation='tanh')(x)
     x = tfkl.BatchNormalization()(x)
     x = tfkl.Dropout(0.05)(x)
 
-    x = tfkl.Dense(128, activation='relu')(x)
+    x = tfkl.Dense(128, activation='tanh')(x)
     x = tfkl.BatchNormalization()(x)
     x = tfkl.Dropout(0.05)(x)
 
-    x = tfkl.Dense(128, activation='relu')(x)
+    x = tfkl.Dense(128, activation='tanh')(x)
     x = tfkl.BatchNormalization()(x)
     x = tfkl.Dropout(0.05)(x)
 
     # setting up output layer 
     x = tfkl.Concatenate()([x1, x])
-    x = tfkl.Dense(128, activation='relu')(x)
+    x = tfkl.Dense(128, activation='tanh')(x)
     x = tfkl.BatchNormalization()(x)
     x = tfkl.Dropout(0.05)(x)
     
@@ -181,11 +181,12 @@ def run_deep_model(dataset_train, dataset_test, geo_dim, epochs, lograte=False):
         model = create_model(geo_dim)
 
     callbacks = [tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss", factor=0.25, patience=3, verbose=0, mode="auto", 
-                                                    min_delta=1e-8, cooldown=0, min_lr=0.0)]
+                                                    min_delta=1e-8, cooldown=0, min_lr=0.0),
+                tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=7, restore_best_weights=True, verbose=0)]
     history = model.fit(dataset_train, validation_data=dataset_test, validation_steps=25, steps_per_epoch=1000, 
                         epochs=epochs, verbose=2, callbacks=callbacks)
 
-    val_loss = history.history['val_loss'][-1]
+    val_loss = min(history.history['val_loss'])
 
     tf.keras.backend.clear_session()
 

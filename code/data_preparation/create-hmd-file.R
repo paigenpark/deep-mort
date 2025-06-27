@@ -3,36 +3,20 @@ library(here)
 library(tidyverse)
 
 # setting up path
-path <- here("data", "country_lifetables", "Mx_1x1")
+path <- here("data", "hmd_death_rates", "Mx_1x1")
 path
 
-
-# read in data
-countries <- c("AUS", "AUT", "BEL", "BGR", "BLR", "CAN", "CHE", "CZE",
-               "DNK", "ESP", "EST", "FIN", "FRATNP", "GBRTENW",
-               "GBR_NIR", "GBR_SCO", "GRC", "HUN", "IRL", "ISL",
-               "ISR", "ITA", "JPN", "LTU", "LUX", "LVA", "NLD", "NOR",
-               "NZL_NM", "POL", "PRT", "RUS", "SVK", "SVN", "SWE", "TWN",
-               "UKR", "USA")
-country_data <- list()
-for (i in 1:length(countries)){
-  file <- paste(countries[i], "Mx_1x1.txt", sep = ".")
-  country_data[[i]] <- read.table(paste(path, file, sep = "/"),
-                                  header = TRUE,
-                                  skip = 2,
-                                  sep = "",
-                                  stringsAsFactors = FALSE)
-  country_data[[i]]$Country = countries[i]
-}
-names(country_data) <- countries
-
-# merge all countries 
-all_countries <- do.call(rbind, country_data)
+file <- "Mx_1x1.txt"
+country_data <- read.table(paste(path, file, sep = "/"),
+                                header = TRUE,
+                                skip = 2,
+                                sep = "",
+                                stringsAsFactors = FALSE)
 
 # get gender variable and mort rate variable
-all_countries_long <- all_countries |>
+all_countries_long <- country_data |>
   pivot_longer(cols = c(Female, Male), 
-    names_to = "Gender", values_to = "Mortality_rate") |>
+    names_to = "Gender", values_to = "MortalityRate") |>
   mutate(Gender = case_when(
     Gender == "Female" ~ "f",
     Gender == "Male" ~ "m",
@@ -43,7 +27,7 @@ all_countries_long$Total <- NULL
 head(all_countries_long)
 
 all_countries_long <- all_countries_long |>
-  select(Country, Gender, Year, Age, Mortality_rate)
+  select(PopName, Gender, Year, Age, MortalityRate)
 head(all_countries_long)
 
 # setting up save_path

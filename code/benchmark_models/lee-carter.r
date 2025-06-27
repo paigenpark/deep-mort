@@ -5,10 +5,10 @@ library(reshape2)
 # sets working directory to the location of this script
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
-country_training <- read.table("../../data/country_training.txt", header = FALSE)
+country_training <- read.table("../../data/country_training_new.txt", header = FALSE)
 countries <- unique(country_training[,1])
 genders <- unique(country_training[,2])
-years <- unique(country_training[,3])
+# years <- unique(country_training[,3])
 ages <- unique(country_training[,4])
 forecasted_years <- 2006:2015
 colnames(country_training) <- c('Country', 'Gender', 'Year', 'Age', 'Rate')
@@ -16,19 +16,28 @@ colnames(country_training) <- c('Country', 'Gender', 'Year', 'Age', 'Rate')
 fitted_results <- list()
 forecasted_results <- list()
 
+
 for (r in 1:5) {
   for (i in countries) {
     for (j in genders) {
       filtered <- country_training |>  
         filter(country_training[,1] == i & country_training[,2] == j) 
+      # get number of years available for country/gender combo
+      years <- sort(unique(filtered$Year))
+
+      mx_df <- filtered |>
+        pivot_wider(names_from = 'Year',
+                    values_from = 'Rate') |>
+        select(-Age, -Gender, -Country)
+      mx_mat <- as.matrix(mx_df)
+      #colnames(mx_mat) <- years
+      mx_mat[mx_mat == 0 | is.na(mx_mat)] <- 9e-06
       
-      mx_mat <- unlist(lapply(years, function(i) filtered[filtered[,3] == i, 5]))
-      mx_mat <- matrix(mx_mat, nrow = length(ages), ncol = length(years), byrow = FALSE)
-      colnames(mx_mat) <- years
-      mx_mat[is.na(mx_mat)] <- 1e-6
-      mx_mat[mx_mat == 0] <- 1e-6
+      # mx_mat <- unlist(lapply(years, function(yr) filtered[filtered[,3] == yr, 5]))
+      # mx_mat <- matrix(mx_mat, nrow = length(ages), ncol = length(years), byrow = FALSE)
+      # mx_mat[mx_mat == 0 | is.na(mx_mat)] <- 9e-06
       
-      Ext <- matrix(1, nrow = length(ages), ncol = length(years))
+      Ext <- matrix(1, nrow = nrow(mx_mat), ncol = ncol(mx_mat))
       
       data <- demogdata(
         data = mx_mat,
@@ -42,7 +51,8 @@ for (r in 1:5) {
       
       lc_output <- lca(data,
                        years = years,
-                       ages = ages)
+                       ages = ages,
+                       adjust = 'none')
       
       fitted <- exp(lc_output$fitted$y)
       df_fitted <- as.data.frame(fitted)
@@ -82,10 +92,10 @@ for (r in 1:5) {
   
   if (!"glue" %in% installed.packages()) install.packages("glue")
   library(glue)
-  
+
   # uncomment to re-save prediction files
-  #write.table(final_fitted_df, "../../data/lc_fitted_all.csv", sep=",", col.names = FALSE,
-            #  row.names = FALSE)
+  write.table(final_forecasted_df, glue("../../data/lc_forecast{r}.csv"), sep=",", col.names = FALSE,
+              row.names = FALSE)
 }
 
 
