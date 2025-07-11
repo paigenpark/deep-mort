@@ -174,16 +174,15 @@ def create_log_model(geo_dim):
 
 
 # run DL model
-def run_deep_model(dataset_train, dataset_test, geo_dim, epochs, lograte=False):
+def run_deep_model(dataset_train, dataset_test, geo_dim, epochs, steps_per_epoch, lograte=False):
     if lograte:
         model = create_log_model(geo_dim)
     else:
         model = create_model(geo_dim)
 
     callbacks = [tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss", factor=0.25, patience=3, verbose=0, mode="auto", 
-                                                    min_delta=1e-8, cooldown=0, min_lr=0.0),
-                tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=7, restore_best_weights=True, verbose=0)]
-    history = model.fit(dataset_train, validation_data=dataset_test, validation_steps=25, steps_per_epoch=1000, 
+                                                    min_delta=1e-8, cooldown=0, min_lr=0.0)]
+    history = model.fit(dataset_train, validation_data=dataset_test, validation_steps=25, steps_per_epoch=steps_per_epoch, 
                         epochs=epochs, verbose=2, callbacks=callbacks)
 
     val_loss = min(history.history['val_loss'])
