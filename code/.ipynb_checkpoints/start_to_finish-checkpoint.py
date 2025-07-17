@@ -5,15 +5,13 @@ from datetime import datetime
 # Set working directory to script's directory
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-# Ensure logs directory exists
-os.makedirs("logs", exist_ok=True)
-
 # Create a log file in the logs directory with a timestamp
 log_path = os.path.join("logs", f"process_log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt")
 log_file = open(log_path, "w")
 
 print(f"Logging to: {log_path}")
 
+# Run process function
 def run_process(command, description=None):
     log_file.write(f"\nRunning: {' '.join(command)}\n")
     if description:
@@ -25,6 +23,7 @@ def run_process(command, description=None):
         log_file.write(f"ERROR during: {' '.join(command)}\n")
         log_file.write(f"Return code: {e.returncode}\n")
     log_file.flush() 
+
 
 # Run each step with logging
 run_process(["Rscript", "data_preparation/create-hmd-file.R"], "Create HMD file")

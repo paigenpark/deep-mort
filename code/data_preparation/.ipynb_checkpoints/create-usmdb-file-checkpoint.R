@@ -1,17 +1,10 @@
-
 # Define a vector of required packages
 required_packages <- c("tidyverse", "here")
 
-# Ensure user library directory exists
-user_lib <- Sys.getenv("R_LIBS_USER")
-if (!dir.exists(user_lib)) {
-  dir.create(user_lib, recursive = TRUE, showWarnings = FALSE)
-}
-
-# Function to check and install missing packages to user lib
+# Function to check and install missing packages
 install_if_missing <- function(pkg) {
   if (!requireNamespace(pkg, quietly = TRUE)) {
-    install.packages(pkg, lib = user_lib)
+    install.packages(pkg)
   }
 }
 
@@ -19,8 +12,7 @@ install_if_missing <- function(pkg) {
 invisible(lapply(required_packages, install_if_missing))
 
 # Load the libraries
-lapply(required_packages, library, character.only = TRUE, lib.loc = user_lib)
-
+lapply(required_packages, library, character.only = TRUE)
 
 # setting up path
 path <- here("data", "us_lifetables", "States")
