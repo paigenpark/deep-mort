@@ -89,7 +89,7 @@ country_data[:,0] = country_data[:,0] + 50
 geos_list = states + countries
 geos_index = np.arange(len(geos_list))
 geos_key = np.column_stack((np.array(geos_list), geos_index))
-np.save('../../data/geos_key_new.npy', geos_key)
+np.save('../../data/geos_key.npy', geos_key)
 
 # create combined data
 combined = np.vstack((state_data, country_data))
@@ -113,29 +113,29 @@ np.savetxt('../../data/state_final_test.txt', state_final_test)
 ##### Country Splits #####
 training_index = np.logical_and(country_data[:, 2] >= 1959, country_data[:, 2] <= 2005)
 country_training = country_data[training_index, :]
-np.savetxt('../../data/country_training_new.txt', country_training)
+np.savetxt('../../data/country_training.txt', country_training)
 
 test_index = np.logical_and(country_data[:, 2] > 2005, country_data[:, 2] <= 2015)
 country_test = country_data[test_index, :]
-np.savetxt('../../data/country_test_new.txt', country_test)
+np.savetxt('../../data/country_test.txt', country_test)
 
 final_test_index = np.logical_and(country_data[:, 2] > 2015, country_data[:, 2] <= 2019)
 country_final_test = country_data[final_test_index, :]
-np.savetxt('../../data/country_final_test_new.txt', country_final_test)
+np.savetxt('../../data/country_final_test.txt', country_final_test)
 
 #### Combined Splits #####
 # split combined data
 training_index = np.logical_and(combined[:, 2] >= 1959, combined[:, 2] <= 2005)
 combined_training = combined[training_index, :]
-np.savetxt('../../data/combined_training_new.txt', combined_training)
+np.savetxt('../../data/combined_training.txt', combined_training)
 
 test_index = np.logical_and(combined[:, 2] > 2005, combined[:, 2] <= 2015)
 combined_test = combined[test_index, :]
-np.savetxt('../../data/combined_test_new.txt', combined_test)
+np.savetxt('../../data/combined_test.txt', combined_test)
 
 final_test_index = np.logical_and(combined[:, 2] > 2015, combined[:, 2] <= 2019)
 combined_final_test = combined[final_test_index, :]
-np.savetxt('../../data/combined_final_test_new.txt', combined_final_test) 
+np.savetxt('../../data/combined_final_test.txt', combined_final_test) 
 
 
 

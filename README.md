@@ -6,16 +6,30 @@ This project investigates the efficacy of deep learning for mortality forecastin
 
 ### Data Access
 
-The data used in this project is stored in a shared Google Drive folder. You can download it here:
+Data should be downloaded directly from the Human Mortality Database and United States Mortality DataBase according to their data sharing policies. 
 
-👉 [Google Drive Data Folder](https://drive.google.com/drive/folders/1-ej8v9k_QCDLLW0CWtOwi5pudlqfyef0?usp=drive_link)
+To download HMD data, follow these instructions:
 
-Clone the repo and download the data from the Google Drive link. Place the data/ folder inside the root directory of this project.
+  1. Go to https://www.mortality.org/
+  2. Register for data access if you have not previously
+  3. Scroll to the bottom of the homepage and click on the Zipped Data Files button in the right corner
+  4. Click on the link to the Period Death Rates zip file - this should start an automatic download
+  5. Unzip the death_rates.zip file and move the data_rates folder to a data directory inside the project
+  6. Rename the folder hmd_death_rates 
+  
+To download USMDB data, follow these instructions:
+* Note: the USMDB is transitioning to a new website at the moment. These instructions may be updated after the new webpage is available.
+
+  1. Go to https://dataverse.harvard.edu/dataverse/usfmdb
+  2. Click on the "U.S. State Life Tables" link
+  3. Download the zip file
+  4. Unzip the USStateLifetables2022.zip file and moved the unzipped file to the data directory in the project
+  5. Rename the folder us_lifetables
 
 ### File Structure
 ```
 .
-├── data/                        # Data folder (downloadable from Google Drive)
+├── data/                        # Data folder (create this and put data from HMD and USMDB inside)
 │
 ├── code/                        # Jupyter notebooks for exploration & analysis
 │    ├── benchmark_models/            # Lee-Carter, Lee-Miller, and Coherent baseline implementations
@@ -23,9 +37,12 @@ Clone the repo and download the data from the Google Drive link. Place the data/
 │    ├── create_robust_figures.ipynb  # Visualization of results from paper - "robust" because uses models from multiple training runs
 │    ├── evaluation_functions.py      # Functions used in create_figures.ipynb to analyze results
 │    ├── train_models.ipynb           # Training deep learning models and saving model predictions
-│    └── training_functions.py        # Functions used in train_models.ipynb to train models
+|    ├── training_functions.py        # Functions used in train_models.ipynb to train models
+│    └── start_to_finish.py           # A script that runs all files to get from raw data to paper figures 
 │
 ├── models/                     # Saved models 
+│
+├── renv/                       # Contain info about R package versions
 │
 ├── README.md                   # This file
 ```
@@ -33,12 +50,7 @@ Clone the repo and download the data from the Google Drive link. Place the data/
 
 If you want to replicate results from raw data: 
 
-  1. Start with data_preparation files and create clean HMD and USMDB files.
-  2. Then split the data.
-  3. Train the neural networks using train_models.ipynb.
-  4. Save resulting predictions from models of interest.
-  5. Train benchmarks using scripts in benchmark_models directory.
-  6. Replicate key figures in the working paper using create_figures.ipynb (and create your own by specifying countries of interest) 
+  
 
 ## Citing and Contact
 
@@ -46,7 +58,7 @@ If you use this project in your research, please cite it as follows:
 ```bibtex
 @misc{park2025project,
   author       = {Paige N. Park},
-  title        = {Deep Learning for Mortality Forcasting},
+  title        = {Deep Learning for Mortality Forecasting},
   year         = {2025},
   howpublished = {\url{(https://github.com/paigenpark/deep-mort)}},
   note         = {Version 1.0}

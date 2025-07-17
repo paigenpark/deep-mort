@@ -1,14 +1,14 @@
 library(demography)
 library(tidyverse)
 library(reshape2)
+library(here)
+library(glue)
 
-# sets working directory to the location of this script
-setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-
-country_training <- read.table("../../data/country_training_new.txt", header = FALSE)
+path <- here("data")
+country_training <- read.table(paste(path, "country_training.txt", sep = "/"), 
+                              header = FALSE)
 countries <- unique(country_training[,1])
 genders <- unique(country_training[,2])
-# years <- unique(country_training[,3])
 ages <- unique(country_training[,4])
 forecasted_years <- 2006:2015
 colnames(country_training) <- c('Country', 'Gender', 'Year', 'Age', 'Rate')
@@ -17,7 +17,8 @@ fitted_results <- list()
 forecasted_results <- list()
 
 
-for (r in 1:5) {
+for (iter in 1:5) {
+  set.seed(iter)
   for (i in countries) {
     for (j in genders) {
       filtered <- country_training |>  
@@ -85,17 +86,13 @@ for (r in 1:5) {
   final_forecasted_df <- bind_rows(forecasted_results)
   final_forecasted_df <- final_forecasted_df |>
     select(country, gender, year, age, rate)  
-  
-  # View structure of final datasets
-  head(final_fitted_df)
-  head(final_forecasted_df)
-  
-  if (!"glue" %in% installed.packages()) install.packages("glue")
-  library(glue)
 
   # uncomment to re-save prediction files
-  write.table(final_forecasted_df, glue("../../data/lc_forecast{r}.csv"), sep=",", col.names = FALSE,
+  write.table(final_forecasted_df, paste(path, glue("lc_forecast_{iter}.csv"), sep = "/"), 
+              sep=",", col.names = FALSE,
               row.names = FALSE)
+
+  print(glue("Iteration {iter} complete – saved to lc_forecast_{iter}.csv"))
 }
 
 

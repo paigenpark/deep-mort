@@ -34,43 +34,37 @@ library(demography)
 library(tidyverse)
 library(reshape2)
 library(glue)
+library(here)
 
 
 # --------------------------
-# 1. Parameters
+# 1. Parameters and paths
 # --------------------------
 forecast_years    <- 2006:2015
-n_iter            <- 1
+n_iter            <- 5
+path <- here("data")
 
 # --------------------------
 # 2. Load raw training data
 # --------------------------
-country_training <- read.table("../../data/country_training.txt", header = FALSE,
+file <- "country_training.txt"
+country_training <- read.table(paste(path, file, sep = "/"), header = FALSE,
                                col.names = c("Country", "Gender", "Year", "Age", "Rate"))
+
 
 country_training <- country_training |>
   arrange(Country, Gender, Year, Age)
 
-fifty_to_1960 = c()
-greater_than_1960 = c()
-years_available = list()  
+excluded_countries = c()
 
 for (country in unique(country_training$Country)) {
   one_country = country_training |>
     filter(Country == country) 
   
-  print(country)
-  print(nrow(one_country))
-  
   year_min = min(one_country$Year, na.rm = TRUE)
   
-  years_available[[country]] = year_min 
-  
-  if (year_min > 1950 & year_min <= 1960) {
-    fifty_to_1960 = c(fifty_to_1960, country)
-  }
-  if (year_min > 1960) {
-    greater_than_1960 = c(greater_than_1960, country)
+  if (year_min > 1959) {
+    excluded_countries = c(excluded_countries, country)
   }
 }
 
@@ -118,72 +112,53 @@ combine_demog_list <- function(dlist) {
 }
 
 # --------------------------
-# 3. Prepare the three datasets
+# 3. Prepare the datasets
 # --------------------------
 
 # 3a) FULL‑HISTORY set (problem countries removed)
-excluded_countries <- c(fifty_to_1960, greater_than_1960)
 full_hist_df <- country_training %>%
   filter(!Country %in% excluded_countries)
 full_demog_list   <- build_demog_list(full_hist_df, ages_all)
 combined_full     <- combine_demog_list(full_demog_list)
 
-# 3b) RESTRICTED‑YEARS set including only countries with data back to at least 1960
-#     1) find the intersection of years that every country–gender combo possesses
-common_years <- country_training %>%
-  filter(!Country %in% greater_than_1960) %>%
-  group_by(Country, Gender) %>%
-  summarise(yrs = list(unique(Year)), .groups = "drop") %>%
-  pull(yrs) %>%
-  reduce(intersect)
-
-df_1960      <- country_training %>% filter(Year %in% common_years)
-demog_list_1960 <- build_demog_list(df_1960, ages_all)
-combined_restrict_1960    <- combine_demog_list(demog_list_1960)
-
-# 3c) RESTRICTED‑YEARS set for all countries
-#     1) find the intersection of years that every country–gender combo possesses
+# 3c) RESTRICTED‑YEARS set for all countries (except Germany - which was causing problems)
+# find the intersection of years that every country–gender combo possesses
+germany <- c(58, 59)
 common_years <- country_training %>%
   group_by(Country, Gender) %>%
   summarise(yrs = list(unique(Year)), .groups = "drop") %>%
   pull(yrs) %>%
   reduce(intersect)
 
-df_after_1960      <- country_training %>% filter(Year %in% common_years)
-demog_list_after_1960  <- build_demog_list(df_after_1960, ages_all)
-combined_restrict_after_1960      <- combine_demog_list(demog_list_after_1960)
+df_restricted      <- country_training %>% filter(Year %in% common_years,
+                                                  !Country %in% germany)
+demog_list_restricted  <- build_demog_list(df_restricted, ages_all)
+combined_restricted      <- combine_demog_list(demog_list_restricted)
+
+
+
 
 # --------------------------
 # 4. Fit, forecast, and merge (repeat n_iter times)
 # --------------------------
 for (iter in seq_len(n_iter)) {
-  
+  set.seed(iter)
   # 4a) Coherent fit on full‑history subset
-  set.seed(1000 + iter)             # ensure different SVD starts each loop
   fit_full <- coherentfdm(combined_full)
   fc_full  <- forecast(fit_full, h = length(forecast_years))
- 
-  
-  # 4b) Coherent fit on restricted years (data back to 1960)
-  set.seed(2000 + iter)
-  fit_restrict_1960 <- coherentfdm(combined_restrict_1960)
-  fc_restrict_1960  <- forecast(fit_restrict_1960, h = length(forecast_years))
   
   # 4c) Coherent fit on restricted years (data back to 1960)
-  set.seed(2000 + iter)
-  fit_restrict_after_1960 <- coherentfdm(combined_restrict_after_1960)
-  fc_restrict_after_1960  <- forecast(fit_restrict_after_1960, h = length(forecast_years))
+  fit_restrict <- coherentfdm(combined_restricted)
+  fc_restrict  <- forecast(fit_restrict, h = length(forecast_years))
   
   # 4d) Build a unified list of forecasts using only the **population-level** labels
-  pop_labels <- names(demog_list_after_1960)  # e.g., "16_1", "16_2", ...
+  pop_labels <- union(names(full_demog_list),   # everything in the full model
+                      names(demog_list_restricted))  # e.g., "16_1", "16_2", ...
   
   fc_mixed_rates <- map(pop_labels, function(label) {
-    country_id <- str_split(label, "_", simplify = TRUE)[1]
-    
-    if (country_id %in% greater_than_1960) {
-      fc_restrict_after_1960[[label]]$rate[[1]]
-    } else if (country_id %in% fifty_to_1960) {
-      fc_restrict_1960[[label]]$rate[[1]]
+    country_id <- as.integer(str_split(label, "_", simplify = TRUE)[1])
+    if (country_id %in% excluded_countries) {
+      fc_restrict[[label]]$rate[[1]]
     } else {
       fc_full[[label]]$rate[[1]]
     }
@@ -205,13 +180,9 @@ for (iter in seq_len(n_iter)) {
   
   final_df <- bind_rows(forecasted_results)
   
-
-  out_path <- glue("../../data/coherent_forecast_test_{iter}.csv")
-  write.table(final_df, out_path, sep = ",", col.names = FALSE, row.names = FALSE)
+  out_file <- glue("coherent_forecast_{iter}.csv")
+  write.table(final_df, paste(path, out_file, sep = "/"), sep = ",", col.names = FALSE, row.names = FALSE)
   
-  message(glue("Iteration {iter} complete – saved to {out_path}"))
+  print(glue("Iteration {iter} complete – saved to {out_file}"))
 }
-
-
-
 
