@@ -56,9 +56,8 @@ If you want to replicate results from raw data:
 
   1. Ensure R and Python dependencies match renv.lock and requirements.txt files (see instructions below)
   2. Run the code/start_to_finish.py file which will prepare data, train models, and reproduce paper figures
-      NOTE: Training the single-country deep learning models is compute intensive so the process may take a while to run
 
-             Using cloud/remote computing resources is recommended. 
+     * NOTE: Training the single-country deep learning models is compute intensive so the process may take a while to run. Using cloud/remote computing resources is recommended. 
   
 ### Environment Setup
 
