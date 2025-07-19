@@ -18,6 +18,7 @@ To download HMD data, follow these instructions:
   6. Rename the folder hmd_death_rates 
   
 To download USMDB data, follow these instructions:
+
 NOTE: the USMDB is transitioning to a new website at the moment. These instructions may be updated after the new webpage is available.
 
   1. Go to https://dataverse.harvard.edu/dataverse/usfmdb
@@ -56,7 +57,8 @@ If you want to replicate results from raw data:
   1. Ensure R and Python dependencies match renv.lock and requirements.txt files (see instructions below)
   2. Run the code/start_to_finish.py file which will prepare data, train models, and reproduce paper figures
       NOTE: Training the single-country deep learning models is compute intensive so the process may take a while to run
-            Using cloud/remote computing resources is recommended. 
+
+             Using cloud/remote computing resources is recommended. 
   
 ### Environment Setup
 
