@@ -18,7 +18,7 @@ To download HMD data, follow these instructions:
   6. Rename the folder hmd_death_rates 
   
 To download USMDB data, follow these instructions:
-* Note: the USMDB is transitioning to a new website at the moment. These instructions may be updated after the new webpage is available.
+NOTE: the USMDB is transitioning to a new website at the moment. These instructions may be updated after the new webpage is available.
 
   1. Go to https://dataverse.harvard.edu/dataverse/usfmdb
   2. Click on the "U.S. State Life Tables" link
@@ -32,7 +32,7 @@ To download USMDB data, follow these instructions:
 ├── data/                        # Data folder (create this and put data from HMD and USMDB inside)
 │
 ├── code/                        # Jupyter notebooks for exploration & analysis
-│    ├── benchmark_models/            # Lee-Carter, Lee-Miller, and Coherent baseline implementations
+│    ├── benchmark_models/            # Lee-Carter, Hyndman-Ullah, and Coherent baseline implementations
 │    ├── data_preparation/            # Creating clean HMD and USMDB data files from raw data & splitting data
 │    ├── create_robust_figures.ipynb  # Visualization of results from paper - "robust" because uses models from multiple training runs
 │    ├── evaluation_functions.py      # Functions used in create_figures.ipynb to analyze results
@@ -40,15 +40,44 @@ To download USMDB data, follow these instructions:
 |    ├── training_functions.py        # Functions used in train_models.ipynb to train models
 │    └── start_to_finish.py           # A script that runs all files to get from raw data to paper figures 
 │
-├── models/                     # Saved models 
+├── models/                      # Saved models 
 │
-├── renv/                       # Contain info about R package versions
+├── renv.lock                    # Contains info about R package versions
 │
-├── README.md                   # This file
+├── requirements.txt             # Contains info about Python package versions
+│
+├── README.md                    # This file
 ```
+
 ### Replication Steps
 
 If you want to replicate results from raw data: 
+
+  1. Ensure R and Python dependencies match renv.lock and requirements.txt files (see instructions below)
+  2. Run the code/start_to_finish.py file which will prepare data, train models, and reproduce paper figures
+      NOTE: Training the single-country deep learning models is compute intensive so the process may take a while to run
+            Using cloud/remote computing resources is recommended. 
+  
+### Environment Setup
+
+R Dependencies (renv.lock)
+To restore the R environment:
+
+  1. Open R or RStudio in the project directory.
+
+  2. Run the following:
+      ```
+      install.packages("renv")  # if not already installed
+      renv::restore()
+      ```
+
+Python Dependencies (requirements.txt)
+To set up the Python environment:
+
+  1. Install dependencies (in a virtual environment or on your machine) by running the following bash code:
+      ```
+      pip install -r requirements.txt
+      ```
 
   
 

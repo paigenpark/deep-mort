@@ -29,27 +29,11 @@
 # https://github.com/robjhyndman/forecast/blob/master/R/newarima2.R
 
 # --------------------------------------------------------------------------------
-# Define a vector of required packages
-required_packages <- c("demography", "tidyverse", "reshape2", "glue", "here")
-
-# Ensure user library directory exists
-user_lib <- Sys.getenv("R_LIBS_USER")
-if (!dir.exists(user_lib)) {
-  dir.create(user_lib, recursive = TRUE, showWarnings = FALSE)
-}
-
-# Function to check and install missing packages to user lib
-install_if_missing <- function(pkg) {
-  if (!requireNamespace(pkg, quietly = TRUE)) {
-    install.packages(pkg, lib = user_lib)
-  }
-}
-
-# Apply the function to all required packages
-invisible(lapply(required_packages, install_if_missing))
-
-# Load the libraries
-lapply(required_packages, library, character.only = TRUE, lib.loc = user_lib)
+library(demography)
+library(tidyverse)
+library(reshape2)
+library(glue)
+library(here)
 
 
 
