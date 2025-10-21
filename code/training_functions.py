@@ -31,7 +31,8 @@ def get_data(index, data, max_val, mode, changeratetolog=False):
         rate = tf.math.log(tf.maximum(rate, epsilon))
 
     # Reshape each element to scalar
-    features = (tf.reshape(year, [1]), tf.reshape(age, [1]), tf.reshape(geography, [1]), tf.reshape(gender, [1]))
+    features = (tf.reshape(year, [1]), tf.reshape(age, [1]), 
+                tf.reshape(geography, [1]), tf.reshape(gender, [1]))
     rate = tf.reshape(rate, [1])
     return features, rate
 
