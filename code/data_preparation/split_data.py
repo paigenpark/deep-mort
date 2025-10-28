@@ -34,7 +34,6 @@ with open("../../data/usmdb.csv", "r") as file:
                 rate = -1
             if rate > 1:
                 rate = 1
-            # get rid of years, ages, not in health data and other cleaning
             if age != -1 and rate != -1 and age <= 99:
                 data.append([state, gender, year, age, rate])
 
