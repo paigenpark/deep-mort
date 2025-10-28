@@ -1,29 +1,36 @@
-# Coherent Two-Stage Forecast
-# ---
-# Goal: 1) Fit a coherent product–ratio model on the **maximal** set of
-#        countries (problem countries removed), using their full histories.
-#        2) Fit a second coherent model restricted to the common time window
-#        across **all** countries (including the five problem ones).
-#        3) For forecast years 2006–2015, export a single CSV where
-#        predictions for the five problem countries come from the restricted
-#        model and all others come from the full‐history model.
-#        4) Repeat the whole process `n_iter` times.
-#
-# Note: The forecast() call below often prints
+##### Coherent Product-Ratio #####
+
+# The fitting process here is more complex than the other benchmark models
+
+# Because the data for some countries is shorter (less years available)
+# we need to fit two rounds of the coherent model
+
+# 1) A coherent product–ratio model is fit on all countries with mortality 
+#    time series extending back to 1959 (this excludes five countries, but 
+#    includes all years)
+# 2) A second coherent model restricted to the common time window
+#    across all countries is fit (this includes all countries -- except Germany
+#    which was leading to fitting issues, but not all years)
+
+# All forecasts are exported into the same csv file
+
+# --------------------------------------------------------------------------------
+# Note: The forecast() call below sometimes prints
 # 
 #   Error in stats::arima(x = …): non-stationary AR part from CSS
-# 
-# ▸ Why it appears  
-#   auto.arima() searches many candidate ARIMA orders.  Each one is first
-#   estimated with conditional-sum-of-squares (“CSS”).  If the provisional
+ 
+# Why does this occur?
+#   auto.arima() searches many candidate ARIMA orders. Each one is first
+#   estimated with conditional-sum-of-squares (“CSS”). If the provisional
 #   AR coefficients are outside the stationarity region, stats::arima()
-#   throws the message *before* control returns to R.  The call is wrapped
+#   throws the message before control returns to R.  The call is wrapped
 #   in try(), so execution continues.
-#
-# ▸ Why it is harmless  
+
 #   The candidate that fails is discarded (its IC is set to Inf) and the
-#   search moves on.  The winning order is ultimately *re-fitted* with full
+#   search moves on.  The winning order is ultimately re-fitted with full
 #   maximum likelihood, so the final model is guaranteed stationary.
+
+#   Good forecasts are still produced for every year. 
 #
 # Source: forecast::auto.arima() and helper myarima()  
 # https://github.com/robjhyndman/forecast/blob/master/R/newarima2.R
@@ -35,26 +42,20 @@ library(reshape2)
 library(glue)
 library(here)
 
-
-
-# --------------------------
-# 1. Parameters and paths
-# --------------------------
+# parameters
 forecast_years    <- 2006:2015
 n_iter            <- 5
-path <- here("data")
 
-# --------------------------
-# 2. Load raw training data
-# --------------------------
+# load and prepare data
+path <- here("data")
 file <- "country_training.txt"
 country_training <- read.table(paste(path, file, sep = "/"), header = FALSE,
                                col.names = c("Country", "Gender", "Year", "Age", "Rate"))
 
-
 country_training <- country_training |>
   arrange(Country, Gender, Year, Age)
 
+# get all countries whose data does not extend back to 1959
 excluded_countries = c()
 
 for (country in unique(country_training$Country)) {
@@ -68,10 +69,10 @@ for (country in unique(country_training$Country)) {
   }
 }
 
-
 ages_all <- sort(unique(country_training$Age))
 
-# build a list of demogdata objects (one per country–gender combo)
+# create function to build a list of demogdata objects 
+# (one per country–gender combo)
 build_demog_list <- function(df, ages_vec) {
   data_objects <- list()
   for (c in unique(df$Country)) {
@@ -103,7 +104,7 @@ build_demog_list <- function(df, ages_vec) {
   data_objects
 }
 
-# collapse a list of demogdata objects into a single combined object
+# collapse list of demogdata objects into a single combined object
 combine_demog_list <- function(dlist) {
   template <- dlist[[1]]
   template$rate <- lapply(dlist, function(x) x$rate[[1]])
@@ -111,17 +112,17 @@ combine_demog_list <- function(dlist) {
   template
 }
 
-# --------------------------
-# 3. Prepare the datasets
-# --------------------------
 
-# 3a) FULL‑HISTORY set (problem countries removed)
+# prepare the datasets
+
+
+# full-history set (problem countries removed)
 full_hist_df <- country_training %>%
   filter(!Country %in% excluded_countries)
 full_demog_list   <- build_demog_list(full_hist_df, ages_all)
 combined_full     <- combine_demog_list(full_demog_list)
 
-# 3c) RESTRICTED‑YEARS set for all countries (except Germany - which was causing problems)
+# restricted years set for all countries (except Germany - which was causing problems)
 # find the intersection of years that every country–gender combo possesses
 germany <- c(58, 59)
 common_years <- country_training %>%
@@ -136,24 +137,20 @@ demog_list_restricted  <- build_demog_list(df_restricted, ages_all)
 combined_restricted      <- combine_demog_list(demog_list_restricted)
 
 
-
-
-# --------------------------
-# 4. Fit, forecast, and merge (repeat n_iter times)
-# --------------------------
+# fit, forecast, and merge into one file (repeat n_iter times)
 for (iter in seq_len(n_iter)) {
   set.seed(iter)
-  # 4a) Coherent fit on full‑history subset
+  # Coherent fit on full‑history subset
   fit_full <- coherentfdm(combined_full)
   fc_full  <- forecast(fit_full, h = length(forecast_years))
   
-  # 4c) Coherent fit on restricted years (data back to 1960)
+  # Coherent fit on restricted years (data back to 1960)
   fit_restrict <- coherentfdm(combined_restricted)
   fc_restrict  <- forecast(fit_restrict, h = length(forecast_years))
   
-  # 4d) Build a unified list of forecasts using only the **population-level** labels
+  # Build a unified list of forecasts using only the population-level labels
   pop_labels <- union(names(full_demog_list),   # everything in the full model
-                      names(demog_list_restricted))  # e.g., "16_1", "16_2", ...
+                      names(demog_list_restricted))  
   
   fc_mixed_rates <- map(pop_labels, function(label) {
     country_id <- as.integer(str_split(label, "_", simplify = TRUE)[1])
@@ -166,7 +163,7 @@ for (iter in seq_len(n_iter)) {
   names(fc_mixed_rates) <- pop_labels
   
   
-  # 4d) Convert to long data frame
+  # convert to long data frame
   forecasted_results <- imap(fc_mixed_rates, function(mat, label) {
     df <- as.data.frame(mat)
     df$age <- ages_all
@@ -181,7 +178,7 @@ for (iter in seq_len(n_iter)) {
   final_df <- bind_rows(forecasted_results)
   
   out_file <- glue("coherent_forecast_{iter}.csv")
-  write.table(final_df, paste(path, out_file, sep = "/"), sep = ",", col.names = FALSE, row.names = FALSE)
+  #write.table(final_df, paste(path, out_file, sep = "/"), sep = ",", col.names = FALSE, row.names = FALSE)
   
   print(glue("Iteration {iter} complete – saved to {out_file}"))
 }

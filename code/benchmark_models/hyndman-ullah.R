@@ -1,25 +1,20 @@
+##### Hyndman-Ullah #####
 
-# Define a vector of required packages
+# vector of required packages
 required_packages <- c("demography", "tidyverse", "reshape2", "glue", "here")
 
-# Ensure user library directory exists
-user_lib <- Sys.getenv("R_LIBS_USER")
-if (!dir.exists(user_lib)) {
-  dir.create(user_lib, recursive = TRUE, showWarnings = FALSE)
-}
-
-# Function to check and install missing packages to user lib
+# function to check and install missing packages 
 install_if_missing <- function(pkg) {
   if (!requireNamespace(pkg, quietly = TRUE)) {
-    install.packages(pkg, lib = user_lib)
+    install.packages(pkg)
   }
 }
 
-# Apply the function to all required packages
+# apply the function to all required packages
 invisible(lapply(required_packages, install_if_missing))
 
-# Load the libraries
-lapply(required_packages, library, character.only = TRUE, lib.loc = user_lib)
+# load the libraries
+lapply(required_packages, library, character.only = TRUE)
 
 
 path <- here("data")
@@ -50,7 +45,6 @@ for(iter in 1:5) {
                     values_from = 'Rate') |>
         select(-Age, -Gender, -Country)
       mx_mat <- as.matrix(mx_df)
-      #colnames(mx_mat) <- years
       mx_mat[mx_mat == 0 | is.na(mx_mat)] <- 9e-06
       
       
