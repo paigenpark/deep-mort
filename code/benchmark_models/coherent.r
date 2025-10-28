@@ -12,7 +12,7 @@
 #    across all countries is fit (this includes all countries -- except Germany
 #    which was leading to fitting issues, but not all years)
 
-# All forecasts are exported into the same csv file
+# All forecasts are exported into the same csv file.  
 
 # --------------------------------------------------------------------------------
 # Note: The forecast() call below sometimes prints
