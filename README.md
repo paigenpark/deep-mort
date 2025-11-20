@@ -1,6 +1,6 @@
 # deep-mort
 
-This project investigates the efficacy of deep learning for mortality forecasting, building on the work of [Richman and Wüthrich (2021)](https://www.cambridge.org/core/journals/annals-of-actuarial-science/article/neural-network-extension-of-the-leecartermodel-to-multiple-populations/19651C62C3976DCD73C79E57CF4A071C). 
+This project investigates why and in what contexts a simple, out-of-the-box MLP deep learning model outperforms the tailored time series approaches foundational to the field of demography. Read [my preprint](https://osf.io/preprints/socarxiv/sqphx_v2) to find out! 
 
 ## Replication Instructions
 
