@@ -44,7 +44,6 @@ library(here)
 
 # parameters
 forecast_years    <- 2006:2015
-n_iter            <- 5
 
 # load and prepare data
 path <- here("data")
@@ -137,49 +136,119 @@ demog_list_restricted  <- build_demog_list(df_restricted, ages_all)
 combined_restricted      <- combine_demog_list(demog_list_restricted)
 
 
-# fit, forecast, and merge into one file (repeat n_iter times)
-for (iter in seq_len(n_iter)) {
-  set.seed(iter)
-  # Coherent fit on full‑history subset
-  fit_full <- coherentfdm(combined_full)
-  fc_full  <- forecast(fit_full, h = length(forecast_years))
-  
-  # Coherent fit on restricted years (data back to 1960)
-  fit_restrict <- coherentfdm(combined_restricted)
-  fc_restrict  <- forecast(fit_restrict, h = length(forecast_years))
-  
-  # Build a unified list of forecasts using only the population-level labels
-  pop_labels <- union(names(full_demog_list),   # everything in the full model
-                      names(demog_list_restricted))  
-  
-  fc_mixed_rates <- map(pop_labels, function(label) {
-    country_id <- as.integer(str_split(label, "_", simplify = TRUE)[1])
-    if (country_id %in% excluded_countries) {
-      fc_restrict[[label]]$rate[[1]]
-    } else {
-      fc_full[[label]]$rate[[1]]
-    }
-  })
-  names(fc_mixed_rates) <- pop_labels
-  
-  
-  # convert to long data frame
-  forecasted_results <- imap(fc_mixed_rates, function(mat, label) {
-    df <- as.data.frame(mat)
-    df$age <- ages_all
-    long_df <- melt(df, id.vars = "age", variable.name = "year", value.name = "rate")
-    long_df$year <- rep(forecast_years, each = length(ages_all))
-    label_split <- str_split(label, "_", simplify = TRUE)
-    long_df$country <- as.numeric(label_split[1])
-    long_df$gender  <- as.numeric(label_split[2])
-    long_df %>% select(country, gender, year, age, rate)
-  })
-  
-  final_df <- bind_rows(forecasted_results)
-  
-  out_file <- glue("coherent_forecast_{iter}.csv")
-  #write.table(final_df, paste(path, out_file, sep = "/"), sep = ",", col.names = FALSE, row.names = FALSE)
-  
-  print(glue("Iteration {iter} complete – saved to {out_file}"))
-}
+# fit, forecast, and merge into one file
+fit_full <- coherentfdm(combined_full)
+fc_full  <- forecast(fit_full, h = length(forecast_years))
+
+# Coherent fit on restricted years (data back to 1960)
+fit_restrict <- coherentfdm(combined_restricted)
+fc_restrict  <- forecast(fit_restrict, h = length(forecast_years))
+
+# Build a unified list of forecasts using only the population-level labels
+pop_labels <- union(names(full_demog_list),
+                    names(demog_list_restricted))
+
+# extract point forecasts + 95% prediction intervals
+fc_mixed <- map(pop_labels, function(label) {
+  country_id <- as.integer(str_split(label, "_", simplify = TRUE)[1])
+  if (country_id %in% excluded_countries) {
+    fc_obj <- fc_restrict[[label]]
+  } else {
+    fc_obj <- fc_full[[label]]
+  }
+  list(
+    rate  = fc_obj$rate[[1]],
+    lower = fc_obj$rate$lower,
+    upper = fc_obj$rate$upper
+  )
+})
+names(fc_mixed) <- pop_labels
+
+# extract fitted values from the coherent model objects
+# coherentfdm() returns an fdmpr with $product (fdm) and $ratio (named list of fdm)
+# Reconstruct per-population fitted rates: exp(log_product + log_ratio)
+fitted_mixed <- map(pop_labels, function(label) {
+  country_id <- as.integer(str_split(label, "_", simplify = TRUE)[1])
+  if (country_id %in% excluded_countries) {
+    fit_obj <- fit_restrict
+  } else {
+    fit_obj <- fit_full
+  }
+  exp(fit_obj$product$fitted$y + fit_obj$ratio[[label]]$fitted$y)
+})
+names(fitted_mixed) <- pop_labels
+
+# convert fitted values to long data frame
+fitted_results <- imap(fitted_mixed, function(mat, label) {
+  df <- as.data.frame(mat)
+  df$age <- ages_all
+  long_df <- melt(df, id.vars = "age",
+                  variable.name = "year", value.name = "rate")
+  label_split <- str_split(label, "_", simplify = TRUE)
+  country_id <- as.numeric(label_split[1])
+  gender_id  <- as.numeric(label_split[2])
+  # get the years used for this country
+  if (country_id %in% excluded_countries) {
+    years_used <- sort(unique(
+      df_restricted$Year[df_restricted$Country == country_id]
+    ))
+  } else {
+    years_used <- sort(unique(
+      full_hist_df$Year[full_hist_df$Country == country_id]
+    ))
+  }
+  long_df$year <- rep(years_used, each = length(ages_all))
+  long_df$country <- country_id
+  long_df$gender  <- gender_id
+  long_df |> select(country, gender, year, age, rate)
+})
+
+# convert forecasts to long data frame with prediction intervals
+forecasted_results <- imap(fc_mixed, function(obj, label) {
+  df <- as.data.frame(obj$rate)
+  df$age <- ages_all
+  long_df <- melt(df, id.vars = "age",
+                  variable.name = "year", value.name = "rate")
+  long_df$year <- rep(forecast_years, each = length(ages_all))
+
+  df_lower <- as.data.frame(obj$lower)
+  df_lower$age <- ages_all
+  lower_long <- melt(df_lower, id.vars = "age",
+                     variable.name = "year", value.name = "lower_95")
+  df_upper <- as.data.frame(obj$upper)
+  df_upper$age <- ages_all
+  upper_long <- melt(df_upper, id.vars = "age",
+                     variable.name = "year", value.name = "upper_95")
+
+  long_df$lower_95 <- lower_long$lower_95
+  long_df$upper_95 <- upper_long$upper_95
+
+  label_split <- str_split(label, "_", simplify = TRUE)
+  long_df$country <- as.numeric(label_split[1])
+  long_df$gender  <- as.numeric(label_split[2])
+  long_df |> select(country, gender, year, age, rate,
+                    lower_95, upper_95)
+})
+
+# assemble fitted results (no uncertainty for in-sample)
+final_fitted_df <- bind_rows(fitted_results)
+final_fitted_df <- final_fitted_df |>
+  transmute(geo = country, gender, year, age, mu = rate,
+            total_var = NA_real_, aleatoric_var = NA_real_,
+            epistemic_var = NA_real_, lower_95 = NA_real_,
+            upper_95 = NA_real_)
+
+# assemble forecast results with prediction intervals
+final_forecasted_df <- bind_rows(forecasted_results)
+final_forecasted_df <- final_forecasted_df |>
+  transmute(geo = country, gender, year, age, mu = rate,
+            total_var = ((upper_95 - lower_95) / (2 * 1.96))^2,
+            aleatoric_var = NA_real_, epistemic_var = NA_real_,
+            lower_95, upper_95)
+
+# save fitted and forecasts
+write.table(final_fitted_df, paste(path, "coherent_fitted.txt", sep = "/"),
+            sep = " ", col.names = FALSE, row.names = FALSE)
+write.table(final_forecasted_df, paste(path, "coherent_forecast.txt", sep = "/"),
+            sep = " ", col.names = FALSE, row.names = FALSE)
 

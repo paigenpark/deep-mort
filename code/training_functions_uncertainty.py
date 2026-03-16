@@ -94,6 +94,18 @@ def gaussian_nll_loss(y_true, y_pred):
     
     return tf.reduce_mean(nll)
 
+def naive_error_loss(y_true, y_pred):
+    mu = y_pred[:, 0:1]           # predicted mean
+    pred_var = y_pred[:, 1:2]      # raw variance (pre-softplus)
+    
+    mu_error = (y_true - mu)**2
+    mu_loss = tf.reduce_mean(mu_error)
+
+    var_loss = tf.reduce_mean((pred_var - mu_loss)**2)
+    total_loss = 0.5 * mu_loss + 0.5 * var_loss
+     
+    return total_loss
+
 def create_ensemble_model(geo_dim):
     """
     Deep ensemble model for raw mortality rates.
