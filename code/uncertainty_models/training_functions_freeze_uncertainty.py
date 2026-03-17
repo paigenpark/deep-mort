@@ -3,7 +3,7 @@ import numpy as np
 tfkl = tf.keras.layers
 
 from training_functions import prep_data, get_data, create_model, create_log_model
-from training_functions_uncertainty import (
+from code.uncertainty_models.training_functions_uncertainty import (
     gaussian_nll_loss,
     predict_single_model,
     combine_ensemble_predictions,
