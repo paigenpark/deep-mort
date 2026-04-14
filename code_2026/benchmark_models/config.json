@@ -1,0 +1,13 @@
+{
+  "cutoff_years": [
+    1985,
+    1990,
+    1995,
+    2000,
+    2005,
+    2009
+  ],
+  "validation_window": 10,
+  "min_year": 1959,
+  "max_year": 2019
+}

@@ -10,3 +10,5 @@ data
 .Rhistory
 .Rprofile
 .ipynb_checkpoints
+prev_code_2025
+models/tuning_ensemble_*.keras

@@ -4,8 +4,8 @@ import json
 import os
 
 # --- Cutoff years for expanding window ---
-CUTOFF_YEARS = [1985, 1990, 1995, 2000, 2005, 2010, 2015]
-VALIDATION_WINDOW = 5  # years reserved from end of training for validation
+CUTOFF_YEARS = [1985, 1990, 1995, 2000, 2005, 2009]
+VALIDATION_WINDOW = 10  # years reserved from end of training for validation
 
 # --- Data boundaries ---
 MIN_YEAR = 1959
