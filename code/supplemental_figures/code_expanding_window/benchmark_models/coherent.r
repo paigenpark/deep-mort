@@ -151,11 +151,11 @@ combined_restricted      <- combine_demog_list(demog_list_restricted)
 
 # fit, forecast, and merge into one file
 fit_full <- coherentfdm(combined_full)
-fc_full  <- forecast(fit_full, h = length(forecast_years))
+fc_full  <- forecast(fit_full, h = length(forecast_years), level = 95)
 
 # Coherent fit on restricted years (data back to 1960)
 fit_restrict <- coherentfdm(combined_restricted)
-fc_restrict  <- forecast(fit_restrict, h = length(forecast_years))
+fc_restrict  <- forecast(fit_restrict, h = length(forecast_years), level = 95)
 
 # Build a unified list of forecasts using only the population-level labels
 pop_labels <- union(names(full_demog_list),

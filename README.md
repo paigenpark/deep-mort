@@ -32,16 +32,32 @@ NOTE: the USMDB is transitioning to a new website at the moment. These instructi
 .
 ├── data/                        # Data folder (create this and put data from HMD and USMDB inside)
 │
-├── code/                        # Jupyter notebooks for exploration & analysis
-│    ├── benchmark_models/            # Lee-Carter, Hyndman-Ullah, and Coherent baseline implementations
-│    ├── data_preparation/            # Creating clean HMD and USMDB data files from raw data & splitting data
-│    ├── create_robust_figures.ipynb  # Visualization of results from paper - "robust" because uses models from multiple training runs
-│    ├── evaluation_functions.py      # Functions used in create_figures.ipynb to analyze results
-│    ├── train_models.ipynb           # Training deep learning models and saving model predictions
-|    ├── training_functions.py        # Functions used in train_models.ipynb to train models
-│    └── start_to_finish.py           # A script that runs all files to get from raw data to paper figures 
+├── code/                        # Notebooks and scripts for data prep, training & analysis
+│    ├── data_preparation/                  # Create clean HMD/USMDB data files from raw data & split data
+│    │    ├── create-hmd-file.R
+│    │    ├── create-usmdb-file.R
+│    │    └── split_data.py
+│    ├── benchmark_models/                  # Lee-Carter, Hyndman-Ullah, and Coherent baseline implementations (R)
+│    ├── train_dl_models.ipynb              # Train deep learning models and save model predictions
+│    ├── training_functions.py              # Functions used in train_dl_models.ipynb
+│    ├── create_figures_tables_1-3.ipynb    # Main paper figures and tables
+│    ├── evaluation_functions.py            # Functions used in the figure notebooks to analyze results
+│    ├── uncertainty_models/                # Uncertainty-quantification model training & evaluation
+│    │    ├── train_dl_models_freeze_uncertainty.ipynb
+│    │    ├── training_functions_freeze_uncertainty.py
+│    │    └── evaluation_uncertainty_fig_4.ipynb
+│    ├── supplemental_figures/              # Supplementary 100-year forecasts and figures
+│    │    ├── lee-carter_100.r, hyndman-ullah_100.R, coherent_100.r
+│    │    ├── supplement_figures.ipynb
+│    │    ├── code_expanding_window/             # Expanding-window pipeline used for the supplement
+│    │    └── supp_data/                         # Saved 100-year forecasts from each model
+│    └── start_to_finish.py                 # Script that runs all files from raw data to paper figures
 │
-├── models/                      # Saved models 
+├── figures/                     # Generated paper figures (PDF)
+│
+├── models/                      # Saved trained models (.keras)
+│
+├── prev_code_2025/              # Earlier (2025) version of the analysis code, kept for reference
 │
 ├── renv.lock                    # Contains info about R package versions
 │
@@ -86,10 +102,10 @@ To set up the Python environment:
 
 If you use this project in your research, please cite it as follows:
 ```bibtex
-@misc{park2025project,
+@misc{park2026project,
   author       = {Paige N. Park},
   title        = {Deep Learning for Mortality Forecasting},
-  year         = {2025},
+  year         = {2026},
   howpublished = {\url{(https://github.com/paigenpark/deep-mort)}},
   note         = {Version 1.0}
 }

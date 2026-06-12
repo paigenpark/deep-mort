@@ -1,14 +1,41 @@
+import os
+import sys
+
 import tensorflow as tf
 import numpy as np
 tfkl = tf.keras.layers
 
+# make sure that directory is importable regardless of the working directory the notebook
+# is launched from.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from training_functions import prep_data, get_data, create_model, create_log_model
-from code.uncertainty_models.training_functions_uncertainty import (
-    gaussian_nll_loss,
-    predict_single_model,
-    combine_ensemble_predictions,
-    get_prediction_intervals,
-)
+
+
+def gaussian_nll_loss(y_true, y_pred):
+    """
+    Gaussian negative log-likelihood loss for deep ensembles.
+
+    The model outputs a 2-unit vector: [mu, raw_variance].
+    We split the prediction, apply softplus to get variance > 0,
+    and compute:  loss = log(sigma^2)/2 + (y - mu)^2 / (2 * sigma^2)
+
+    Args:
+        y_true: Ground truth values, shape (batch, 1)
+        y_pred: Model predictions, shape (batch, 2) where
+                y_pred[:, 0] = mu (predicted mean)
+                y_pred[:, 1] = raw_variance (before softplus)
+    """
+    mu = y_pred[:, 0:1]           # predicted mean
+    raw_var = y_pred[:, 1:2]      # raw variance (pre-softplus)
+
+    # Softplus to enforce positivity + small floor for numerical stability
+    variance = tf.math.softplus(raw_var) + 1e-6
+
+    # Gaussian NLL: log(sigma^2)/2 + (y - mu)^2 / (2 * sigma^2)
+    nll = 0.5 * tf.math.log(variance) + 0.5 * tf.square(y_true - mu) / variance
+
+    return tf.reduce_mean(nll)
 
 
 # ==============================================================================

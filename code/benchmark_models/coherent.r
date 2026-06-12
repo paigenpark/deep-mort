@@ -38,7 +38,6 @@
 # --------------------------------------------------------------------------------
 library(demography)
 library(tidyverse)
-library(reshape2)
 library(glue)
 library(here)
 
@@ -47,7 +46,7 @@ forecast_years    <- 2006:2015
 
 # load and prepare data
 path <- here("data")
-file <- "country_training_orig.txt"
+file <- "country_training.txt"
 country_training <- read.table(paste(path, file, sep = "/"), header = FALSE,
                                col.names = c("Country", "Gender", "Year", "Age", "Rate"))
 
@@ -138,11 +137,11 @@ combined_restricted      <- combine_demog_list(demog_list_restricted)
 
 # fit, forecast, and merge into one file
 fit_full <- coherentfdm(combined_full)
-fc_full  <- forecast(fit_full, h = length(forecast_years))
+fc_full  <- forecast(fit_full, h = length(forecast_years), level = 95)
 
 # Coherent fit on restricted years (data back to 1960)
 fit_restrict <- coherentfdm(combined_restricted)
-fc_restrict  <- forecast(fit_restrict, h = length(forecast_years))
+fc_restrict  <- forecast(fit_restrict, h = length(forecast_years), level = 95)
 
 # Build a unified list of forecasts using only the population-level labels
 pop_labels <- union(names(full_demog_list),
@@ -180,10 +179,6 @@ names(fitted_mixed) <- pop_labels
 
 # convert fitted values to long data frame
 fitted_results <- imap(fitted_mixed, function(mat, label) {
-  df <- as.data.frame(mat)
-  df$age <- ages_all
-  long_df <- melt(df, id.vars = "age",
-                  variable.name = "year", value.name = "rate")
   label_split <- str_split(label, "_", simplify = TRUE)
   country_id <- as.numeric(label_split[1])
   gender_id  <- as.numeric(label_split[2])
@@ -197,28 +192,38 @@ fitted_results <- imap(fitted_mixed, function(mat, label) {
       full_hist_df$Year[full_hist_df$Country == country_id]
     ))
   }
-  long_df$year <- rep(years_used, each = length(ages_all))
-  long_df$country <- country_id
-  long_df$gender  <- gender_id
+  df <- as.data.frame(mat)
+  colnames(df) <- years_used
+  df$age <- ages_all
+  long_df <- df |>
+    pivot_longer(cols = -age, names_to = "year", values_to = "rate") |>
+    mutate(year = as.integer(year),
+           country = country_id,
+           gender = gender_id)
   long_df |> select(country, gender, year, age, rate)
 })
 
 # convert forecasts to long data frame with prediction intervals
 forecasted_results <- imap(fc_mixed, function(obj, label) {
   df <- as.data.frame(obj$rate)
+  colnames(df) <- forecast_years
   df$age <- ages_all
-  long_df <- melt(df, id.vars = "age",
-                  variable.name = "year", value.name = "rate")
-  long_df$year <- rep(forecast_years, each = length(ages_all))
+  long_df <- df |>
+    pivot_longer(cols = -age, names_to = "year", values_to = "rate") |>
+    mutate(year = as.integer(year))
 
   df_lower <- as.data.frame(obj$lower)
+  colnames(df_lower) <- forecast_years
   df_lower$age <- ages_all
-  lower_long <- melt(df_lower, id.vars = "age",
-                     variable.name = "year", value.name = "lower_95")
+  lower_long <- df_lower |>
+    pivot_longer(cols = -age, names_to = "year", values_to = "lower_95") |>
+    mutate(year = as.integer(year))
   df_upper <- as.data.frame(obj$upper)
+  colnames(df_upper) <- forecast_years
   df_upper$age <- ages_all
-  upper_long <- melt(df_upper, id.vars = "age",
-                     variable.name = "year", value.name = "upper_95")
+  upper_long <- df_upper |>
+    pivot_longer(cols = -age, names_to = "year", values_to = "upper_95") |>
+    mutate(year = as.integer(year))
 
   long_df$lower_95 <- lower_long$lower_95
   long_df$upper_95 <- upper_long$upper_95
@@ -247,8 +252,8 @@ final_forecasted_df <- final_forecasted_df |>
             lower_95, upper_95)
 
 # save fitted and forecasts
-write.table(final_fitted_df, paste(path, "coherent_fitted_orig.txt", sep = "/"),
+write.table(final_fitted_df, paste(path, "coherent_fitted.txt", sep = "/"),
             sep = " ", col.names = FALSE, row.names = FALSE)
-write.table(final_forecasted_df, paste(path, "coherent_forecast_orig.txt", sep = "/"),
+write.table(final_forecasted_df, paste(path, "coherent_forecast.txt", sep = "/"),
             sep = " ", col.names = FALSE, row.names = FALSE)
 
