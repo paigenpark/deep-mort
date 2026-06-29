@@ -55,7 +55,7 @@ NOTE: the USMDB is transitioning to a new website at the moment. These instructi
 │
 ├── figures/                     # Generated paper figures (PNG)
 │
-├── models/                      # Saved trained models (.keras)
+├── models/                      # Trained models (.keras) are written here by the training notebooks (not tracked in git)
 │
 ├── renv.lock                    # Contains info about R package versions
 │
@@ -66,13 +66,53 @@ NOTE: the USMDB is transitioning to a new website at the moment. These instructi
 
 ### Replication Steps
 
-If you want to replicate results from raw data: 
+If you want to replicate results from raw data, first ensure your R and Python dependencies match the `renv.lock` and `requirements.txt` files (see [Environment Setup](#environment-setup) below). Then run the scripts in the order listed.
 
-  1. Ensure R and Python dependencies match renv.lock and requirements.txt files (see instructions below)
-  2. Run the code/start_to_finish.py file which will prepare data, train models, and reproduce paper figures
+> **NOTE:** Training the single-country deep learning models is compute intensive and may take a while to run. Using cloud/remote computing resources is recommended.
 
-     * NOTE: Training the single-country deep learning models is compute intensive so the process may take a while to run. Using cloud/remote computing resources is recommended. 
-  
+A few conventions:
+  - The R scripts use the [`here`](https://here.r-lib.org/) package, so they can be run from anywhere in the project.
+  - The Jupyter notebooks use relative paths and should be run with their own containing directory as the working directory (e.g. run `train_dl_models.ipynb` from `code/`, and run the supplemental notebooks from their respective subfolders).
+
+#### Main results (Figures 1–3 and Tables)
+
+  1. **Build clean data files from the raw HMD/USMDB downloads:**
+      ```bash
+      Rscript code/data_preparation/create-hmd-file.R
+      Rscript code/data_preparation/create-usmdb-file.R
+      ```
+  2. **Create the train/validation/test splits:**
+      ```bash
+      python code/data_preparation/split_data.py
+      ```
+  3. **Run the benchmark time-series models:**
+      ```bash
+      Rscript code/benchmark_models/lee-carter.r
+      Rscript code/benchmark_models/hyndman-ullah.R
+      Rscript code/benchmark_models/coherent.r
+      ```
+  4. **Train the deep learning models and save their predictions:** run `code/train_dl_models.ipynb`.
+  5. **Generate the main figures and tables:** run `code/create_figures_tables_1-3.ipynb`. Figures are written to `figures/`.
+
+#### Uncertainty analysis (Figure 4)
+
+Builds on the data and benchmark forecasts produced in the main pipeline above.
+
+  6. Train the uncertainty-quantification models: run `code/uncertainty_models/train_dl_models_freeze_uncertainty.ipynb`.
+  7. Produce Figure 4: run `code/uncertainty_models/evaluation_uncertainty_fig_4.ipynb`.
+
+#### Supplemental figures (100-year forecasts and expanding-window analysis)
+
+  8. Regenerate the 100-year benchmark forecasts:
+      ```bash
+      Rscript code/supplemental_figures/lee-carter_100.r
+      Rscript code/supplemental_figures/hyndman-ullah_100.R
+      Rscript code/supplemental_figures/coherent_100.r
+      ```
+  9. Produce the supplemental figures: run `code/supplemental_figures/supplement_figures.ipynb` (reads the saved forecasts in `code/supplemental_figures/supp_data/`).
+
+The expanding-window pipeline used in the supplement lives in `code/supplemental_figures/code_expanding_window/` and mirrors the main pipeline above.
+
 ### Environment Setup
 
 R Dependencies (renv.lock)
@@ -94,7 +134,9 @@ To set up the Python environment:
       pip install -r requirements.txt
       ```
 
-  
+## License
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
 
 ## Citing and Contact
 
@@ -104,7 +146,7 @@ If you use this project in your research, please cite it as follows:
   author       = {Paige N. Park},
   title        = {Deep Learning for Mortality Forecasting},
   year         = {2026},
-  howpublished = {\url{(https://github.com/paigenpark/deep-mort)}},
+  howpublished = {\url{https://github.com/paigenpark/deep-mort}},
   note         = {Version 1.0}
 }
 ```
