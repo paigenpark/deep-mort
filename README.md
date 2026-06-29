@@ -140,14 +140,26 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 
 ## Citing and Contact
 
-If you use this project in your research, please cite it as follows:
+If you use this work in your research, please cite the paper:
 ```bibtex
-@misc{park2026project,
+@misc{park2025nextgen,
   author       = {Paige N. Park},
-  title        = {Deep Learning for Mortality Forecasting},
-  year         = {2026},
-  howpublished = {\url{https://github.com/paigenpark/deep-mort}},
-  note         = {Version 1.0}
+  title        = {Next-Generation Mortality Forecasting with Deep Learning},
+  year         = {2025},
+  howpublished = {SocArXiv preprint},
+  doi          = {10.31235/osf.io/sqphx_v2},
+  url          = {https://doi.org/10.31235/osf.io/sqphx_v2}
 }
 ```
+
+If you use the code directly, you may additionally cite this repository:
+```bibtex
+@misc{park2025deepmort,
+  author       = {Paige N. Park},
+  title        = {{deep-mort}: Code for Next-Generation Mortality Forecasting with Deep Learning},
+  year         = {2025},
+  howpublished = {\url{https://github.com/paigenpark/deep-mort}}
+}
+```
+
 If you have questions feel free to email me: paige_park@berkeley.edu
