@@ -47,17 +47,15 @@ NOTE: the USMDB is transitioning to a new website at the moment. These instructi
 │    │    ├── training_functions_freeze_uncertainty.py
 │    │    └── evaluation_uncertainty_fig_4.ipynb
 │    ├── supplemental_figures/              # Supplementary 100-year forecasts and figures
-│    │    ├── lee-carter_100.r, hyndman-ullah_100.R, coherent_100.r
-│    │    ├── supplement_figures.ipynb
-│    │    ├── code_expanding_window/             # Expanding-window pipeline used for the supplement
-│    │    └── supp_data/                         # Saved 100-year forecasts from each model
-│    └── start_to_finish.py                 # Script that runs all files from raw data to paper figures
+│         ├── lee-carter_100.r, hyndman-ullah_100.R, coherent_100.r
+│         ├── supplement_figures.ipynb
+│         ├── code_expanding_window/             # Expanding-window pipeline used for the supplement
+│         └── supp_data/                         # Saved 100-year forecasts from each model
+│              
 │
-├── figures/                     # Generated paper figures (PDF)
+├── figures/                     # Generated paper figures (PNG)
 │
 ├── models/                      # Saved trained models (.keras)
-│
-├── prev_code_2025/              # Earlier (2025) version of the analysis code, kept for reference
 │
 ├── renv.lock                    # Contains info about R package versions
 │
